@@ -50,20 +50,19 @@ class PropertyWidget(QWidget):
         display_name = prop
 
         # TODO: use a registry instead
-        if isinstance(pmeta, type) and issubclass(pmeta, p.BooleanMeta):
-            return BooleanPropertyWidget(prop, display_name, str(value))
-        if isinstance(pmeta, type) and issubclass(pmeta, p.TextMeta):
+        if isinstance(pmeta, type) and issubclass(pmeta, p.BooleanMeta) and if value is not None:
+                return BooleanPropertyWidget(prop, display_name, str(value))
+        if isinstance(pmeta, type) and issubclass(pmeta, p.TextMeta) and if value is not None:
             return TextPropertyWidget(prop, display_name, str(value))
-        if isinstance(pmeta, type) and issubclass(pmeta, p.EnumMeta):
+        if isinstance(pmeta, type) and issubclass(pmeta, p.EnumMeta) and if value is not None:
             return AsciiPropertyWidget(prop, display_name, str(value))
-        if isinstance(pmeta, type) and issubclass(pmeta, p.Float32Meta):
+        if isinstance(pmeta, type) and issubclass(pmeta, p.Float32Meta) and if value is not None:
             return FloatPropertyWidget(prop, display_name, str(value))
-        if isinstance(pmeta, type) and issubclass(pmeta, p.Vec2Meta):
+        if isinstance(pmeta, type) and issubclass(pmeta, p.Vec2Meta) and if value is not None:
             return Vec2PropertyWidget(prop, display_name, str(value.as_tuple()))
-        if isinstance(pmeta, type) and issubclass(pmeta, (p.BrickSize, p.ExitLocation)):
-            if value is not None:
+        if isinstance(pmeta, type) and issubclass(pmeta, (p.BrickSize, p.ExitLocation)) and if value is not None:
                 return Vec3PropertyWidget(prop, display_name, str(value.as_tuple()))
-        if isinstance(pmeta, type) and issubclass(pmeta, p.NumFractionalDigits):
+        if isinstance(pmeta, type) and issubclass(pmeta, p.NumFractionalDigits) and if value is not None:
             return Integer8PropertyWidget(prop, display_name, str(value))
 
         return UnknownPropertyWidget(prop, display_name, str(value))
