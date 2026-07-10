@@ -21,7 +21,7 @@ class VehicleUpscalerMenu(base.BaseMenu):
         self.master_layout.addWidget(self.vehicle_selector)
 
         # Info label
-        self.info_label = QLabel("Actions are performed in the UI order. The vehicle is first moved, then rotated, then scaled")
+        self.info_label = QLabel("Actions are performed in the UI order. The vehicle is first moved, then scaled")
         self.info_label.setWordWrap(True)
         self.master_layout.addWidget(self.info_label)
 
