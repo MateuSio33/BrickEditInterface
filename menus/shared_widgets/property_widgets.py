@@ -57,7 +57,7 @@ class PropertyWidget(QWidget):
             if value is not None:
                 return TextPropertyWidget(prop, display_name, str(value))
         if isinstance(pmeta, type) and issubclass(pmeta, p.EnumMeta):
-            if value is not None
+            if value is not None:
                 return AsciiPropertyWidget(prop, display_name, str(value))
         if isinstance(pmeta, type) and issubclass(pmeta, p.Float32Meta):
             if value is not None:
