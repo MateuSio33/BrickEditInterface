@@ -17,6 +17,8 @@ class SettingsManager:
     DEFAULT_LT_BACKUP_COUNT_LIMIT = 3
     DEFAULT_LT_BACKUP_SIZE_LIMIT_KB = 8192
 
+    DEFAULT_THEME = 'dark'
+
 
     def __init__(self):
         self.create_default_settings()
@@ -27,6 +29,7 @@ class SettingsManager:
         self.st_backup_size_limit_kb = self.DEFAULT_ST_BACKUP_SIZE_LIMIT_KB
         self.lt_backup_count_limit = self.DEFAULT_LT_BACKUP_COUNT_LIMIT
         self.lt_backup_size_limit_kb = self.DEFAULT_LT_BACKUP_SIZE_LIMIT_KB
+        self.theme = 'dark'
 
 
     def get_settings_path(self):
@@ -58,6 +61,7 @@ class SettingsManager:
             "st_backup_size_limit_kb": self.st_backup_size_limit_kb,
             "lt_backup_count_limit": self.lt_backup_count_limit,
             "lt_backup_size_limit_kb": self.lt_backup_size_limit_kb,
+            "theme": self.theme
         }
         # Make sure the path exist. We don't do anything of the result
         settings_path = self.get_settings_file_path()
@@ -78,6 +82,7 @@ class SettingsManager:
                 self.st_backup_size_limit_kb = settings.get("st_backup_size_limit_kb", self.st_backup_size_limit_kb)
                 self.lt_backup_count_limit = settings.get("lt_backup_count_limit", self.lt_backup_count_limit)
                 self.lt_backup_size_limit_kb = settings.get("lt_backup_size_limit_kb", self.lt_backup_size_limit_kb)
+                self.theme = settings.get("theme", 'dark')
 
                 if file_version > self.CURRENT_FILE_VERSION or file_version == -1:
                     QMessageBox.warning(None, "Unknown file version", "The settings file you are loading may contain error. Please try to update BrickEdit-Interface.")
@@ -101,3 +106,6 @@ If you press OK, you may reset your settings!
                 pass
             else:
                 sys_exit(1)
+
+
+settings_manager = SettingsManager()

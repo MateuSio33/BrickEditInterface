@@ -4,10 +4,11 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStackedLayout,
 from sidebar import Sidebar
 from menus import *
 from utils import VERSION, DEV_VERSION
-from systems.settings import SettingsManager
+from systems.settings import settings_manager
 from systems.backup import BackupSystem
 from systems.update import UpdateChecker
-
+from ui.theme import Theme, register_has_theme_and_apply
+from ui.components import VehicleSelectionDrawer
 
 class BrickEditInterface(QMainWindow):
     """Main application window for the BrickEdit interface."""
@@ -21,7 +22,7 @@ class BrickEditInterface(QMainWindow):
         self.setWindowTitle("BrickEdit Interface")
 
         # Systems
-        self.settings = SettingsManager()
+        self.settings = settings_manager
         self.backups = BackupSystem(self)
         self.update_checker = UpdateChecker(
             "MrPerruche", "BrickEditInterface", VERSION
@@ -32,7 +33,7 @@ class BrickEditInterface(QMainWindow):
         self.update_checker.start()
 
         # Initialize menus
-        self.menus = [
+        self.menus: list[BaseMenu] = [
             HomeMenu(self),
             SettingsAndBackupsMenu(self),
             EditBrickMenu(self),
@@ -50,16 +51,25 @@ class BrickEditInterface(QMainWindow):
         menu_configs = [
             {
                 'name': menu.get_menu_name(),
-                'icon': menu.get_icon(),
+                'icon_info': menu.get_icon()
             }
             for menu in self.menus
         ]
 
         # Set up central widget and layout
         central = QWidget()
+        central.setObjectName("appCentral")
+        central.setAttribute(Qt.WA_StyledBackground, True)
         self.setCentralWidget(central)
 
-        layout = QHBoxLayout(central)
+        master_layout = QVBoxLayout(central)
+        master_layout.setContentsMargins(0, 0, 0, 0)
+        master_layout.setSpacing(0)
+        self.vehicle_selector_banner = VehicleSelectionDrawer()
+        master_layout.addWidget(self.vehicle_selector_banner)
+
+        layout = QHBoxLayout()
+        master_layout.addLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -74,6 +84,7 @@ class BrickEditInterface(QMainWindow):
         # Add menus to stack
         for menu in self.menus:
             scroll = QScrollArea()
+            scroll.setObjectName("menuContentScroll")
             scroll.setWidgetResizable(True)
             scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             scroll.setFrameShape(QScrollArea.NoFrame)
@@ -83,6 +94,32 @@ class BrickEditInterface(QMainWindow):
 
         # Connect sidebar menu changes to stack
         self.sidebar.menu_changed.connect(self.menu_stack.setCurrentIndex)
+
+        register_has_theme_and_apply(self)
+
+    def _apply_theme(self, theme: Theme) -> None:
+        self.centralWidget().setStyleSheet(f"""
+            QWidget#appCentral {{
+                background-color: {theme.background.color};
+            }}
+        """)
+
+        for i in range(self.menu_stack.count()):
+            scroll = self.menu_stack.widget(i)
+            if isinstance(scroll, QScrollArea):
+                scroll.setStyleSheet("QScrollArea { border: none; }")
+
+        self.setStyleSheet(f"""
+            QToolTip {{
+                background-color: {theme.background.color};
+                color: {theme.text.color};
+
+                border: 2px solid {theme.border.color};
+                border-radius: 4px;
+
+                font-size: 13pt;
+            }}""")
+        
 
     def report_new_update(self, version: str):
         dlg = QMessageBox()

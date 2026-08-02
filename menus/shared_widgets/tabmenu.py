@@ -75,7 +75,7 @@ class TabMenu(QWidget):
             raise ValueError(f"Element {element} is not a QWidget or QLayout")
 
         self.menus_widgets[key].setSizePolicy(
-            QSizePolicy.Policy.Preferred, 
+            QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum   # This prevents the widget from growing beyond its content
         )
 

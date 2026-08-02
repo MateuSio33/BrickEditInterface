@@ -4,6 +4,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 
+from menus.base import MenuIconInfo
+from ui.theme import Theme, register_has_theme_and_apply
+from utils import tint_icon
+
 
 class Sidebar(QWidget):
     """Sidebar navigation for menu selection."""
@@ -31,35 +35,30 @@ class Sidebar(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setObjectName("menuScroll")
 
         container = QWidget()
+        container.setObjectName("sidebarContainer")
         layout = QVBoxLayout(container)
         layout.setContentsMargins(6, 6, 0, 0)
         layout.setSpacing(6)
+        
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        container.setAttribute(Qt.WA_StyledBackground, True)
 
         self.buttons = []
+        self.menu_configs = menu_configs
 
         for index, config in enumerate(menu_configs):
             btn = QToolButton()
             btn.setToolTip(config.get('name', f'Menu {index}'))
-            btn.setIcon(config.get('icon', QIcon(':/assets/icons/placeholder.png')))
+            menu_icon_info = config.get('icon_info', MenuIconInfo(QIcon(':/assets/icons/placeholder.png'), True))
+            btn.setIcon(menu_icon_info.qicon)
             btn.setIconSize(QSize(24, 24))
             btn.setCheckable(True)
             btn.setAutoExclusive(True)
             btn.setToolButtonStyle(Qt.ToolButtonIconOnly)
             btn.setFixedSize(40, 40)
-
-            btn.setStyleSheet("""
-                QToolButton {
-                    border-radius: 6px;
-                }
-                QToolButton:hover {
-                    background-color: rgba(255, 255, 255, 0.08);
-                }
-                QToolButton:checked {
-                    background-color: rgba(255, 255, 255, 0.15);
-                }
-            """)
 
             btn.clicked.connect(
                 lambda checked, i=index: self.menu_changed.emit(i)
@@ -74,3 +73,45 @@ class Sidebar(QWidget):
         layout.addStretch()
         scroll.setWidget(container)
         main_layout.addWidget(scroll)
+
+        register_has_theme_and_apply(self)
+
+
+    def _apply_theme(self, theme: Theme) -> None:
+        # Update styles
+        self.setStyleSheet(f"""
+            Sidebar {{
+                background-color: {theme.sidebar.color};
+            }}
+
+            QWidget#sidebarContainer {{
+                background-color: {theme.sidebar.color};
+            }}
+
+            QScrollArea#menuScroll {{
+                background-color: {theme.sidebar.color};
+                border: none;
+            }}
+
+            QToolButton {{
+                border-radius: 6px;
+                background-color: transparent;
+                color: {theme.sidebar.color};
+            }}
+
+            QToolButton:hover {{
+                background-color: {theme.surface.color_double};
+            }}
+
+            QToolButton:checked {{
+                background-color: {theme.accent.color};
+            }}
+        """)
+
+        # Update QIcons
+        icon_col = theme.text.color_hex_argb
+        for btn, menu_cfg in zip(self.buttons, self.menu_configs):
+            og_icon_info = menu_cfg['icon_info']
+            if not og_icon_info.can_be_colored:
+                continue
+            btn.setIcon(tint_icon(og_icon_info.qicon, icon_col))

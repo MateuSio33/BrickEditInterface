@@ -8,12 +8,13 @@ from brickedit import *
 
 from typing import NoReturn
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMessageBox
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QIcon, QPixmap, QPainter
 
 
-VERSION = "1.3.0"
-DEV_VERSION = False
+VERSION = "2.0.0"
+DEV_VERSION = True
 
 
 def str_time_since(seconds):
@@ -28,8 +29,27 @@ def str_time_since(seconds):
         return f"{seconds // DAY}d {seconds % DAY // HOUR}h"
     elif seconds < YEAR:
         return f"{seconds // MONTH} month(s) {seconds % MONTH // DAY}d"
-    else:
+    elif seconds < YEAR*1000:
         return f"{seconds // YEAR} year(s)"
+    else:
+        return "never"
+
+
+def get_vehicle_version(vehicle_path: str) -> tuple[int, int]:
+    """Returns version of BRM then BRV file. Returns version 0 if file does not exist."""
+    brm_path = os.path.join(vehicle_path, 'MetaData.brm')
+    brv_path = os.path.join(vehicle_path, 'Vehicle.brv')
+
+    brm_version = 0
+    brv_version = 0
+    if os.path.exists(brm_path):
+        with open(brm_path, 'rb') as f:
+            brm_version = int.from_bytes(f.read(1), 'little')
+    if os.path.exists(brv_path):
+        with open(brv_path, 'rb') as f:
+            brv_version = int.from_bytes(f.read(1), 'little')
+
+    return brm_version, brv_version
 
 
 def parse_float_tuple(text: str):
@@ -242,3 +262,29 @@ def oklch_to_oklab(L, C, h):
     a = C * math.cos(rad)
     b = C * math.sin(rad)
     return (L, a, b)
+
+def tint_icon(icon: QIcon, color: str, size: tuple[int, int] | None = None) -> QIcon:
+    if size is None:
+        idx_max = -1
+        current_max = 0
+        for idx, size in enumerate(icon.availableSizes()):
+            if size.width() > current_max:
+                current_max = size.width()
+                idx_max = idx
+        if idx_max != -1:  # Some icons can rarely have no available sizes
+            size_x, size_y = icon.availableSizes()[idx_max].width(), icon.availableSizes()[idx_max].height()
+        else:
+            size_x, size_y = 128, 128
+    else:
+        size_x, size_y = size
+    pixmap = icon.pixmap(size_x, size_y)
+    out = QPixmap(size_x, size_y)
+    out.fill(Qt.transparent)
+
+    painter = QPainter(out)
+    painter.drawPixmap(0, 0, pixmap)
+    painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+    painter.fillRect(out.rect(), QColor(color))
+    painter.end()
+
+    return QIcon(out)

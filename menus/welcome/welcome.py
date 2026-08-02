@@ -6,6 +6,8 @@ from menus import base
 from ..shared_widgets import *
 
 from utils import VERSION, DEV_VERSION
+from ui.widgets import Label, HeaderLabel, Button
+
 
 
 class LicenseDialog(QDialog):
@@ -63,17 +65,13 @@ class HomeMenu(base.BaseMenu):
         title_text = "BrickEdit-Interface"
         version_text = f"{'Dev ' if DEV_VERSION else ''}Version {VERSION} by @perru_"  # Remove author when there will be contributors
 
-        title_font = QFont()
-        title_font.setPointSize(14)
-        title_font.setBold(True)
 
-        self.bei_text_label = QLabel(title_text)
-        self.bei_text_label.setFont(title_font)
-        self.bei_text_label.setAlignment(Qt.AlignRight)
+        self.bei_text_label = Label(title_text, 16, 900)
+        self.bei_text_label.set_italic(True)
+        self.bei_text_label.qt_widget.setAlignment(Qt.AlignRight)
 
-        version_label = QLabel(version_text)
-        version_label.setAlignment(Qt.AlignRight)
-        version_label.setStyleSheet("color: gray;")
+        version_label = Label(version_text, 10, muted=True)
+        version_label.qt_widget.setAlignment(Qt.AlignRight)
 
         # Layout that holds title + version
         title_block_layout = QVBoxLayout()
@@ -141,32 +139,26 @@ Our backup system lets you adjust both how many and how large the backups of a v
 
             match welcome_label_text.strip():
                 case 'linkbtn_github':
-                    self.github_button = QPushButton("Github (download updates in releases)")
+                    self.github_button = Button("Github (download updates in releases)")
                     self.github_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/MrPerruche/BrickEditInterface")))
                     self.master_layout.addWidget(self.github_button)
                     continue
                 case 'linkbtn_discord':
-                    self.discord_button = QPushButton("Discord (chat, get notifications and support)")
+                    self.discord_button = Button("Discord (chat, get notifications and support)")
                     self.discord_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://discord.gg/P9wcknqQVB")))
                     self.master_layout.addWidget(self.discord_button)
                     continue
                 case 'licensebtn':
-                    self.license_button = QPushButton("Show license offline")
+                    self.license_button = Button("Show license offline")
                     self.license_button.clicked.connect(self.show_license)
                     self.master_layout.addWidget(self.license_button)
                     continue
 
-            is_large = False
             if welcome_label_text.strip().startswith('#'):
-                is_large = True
                 welcome_label_text = welcome_label_text.replace('#', '')
-            welcome_label = QLabel(welcome_label_text)
-            if is_large:
-                font = QFont()
-                font.setBold(True)
-                font.setPointSize(12)
-                welcome_label.setFont(font)
-            welcome_label.setWordWrap(True)
+                welcome_label = HeaderLabel(welcome_label_text, 5)
+            else:
+                welcome_label = Label(welcome_label_text)
             self.welcome_labels.append(welcome_label)
             self.master_layout.addWidget(welcome_label)
 
@@ -177,8 +169,8 @@ Our backup system lets you adjust both how many and how large the backups of a v
     def get_menu_name(self):
         return "Welcome"
 
-    def get_icon(self):
-        return QIcon(':/assets/icons/brickeditinterface.ico')
+    def get_icon(self) -> base.MenuIconInfo:
+        return base.MenuIconInfo(QIcon(':/assets/icons/brickeditinterface.ico'), False)
 
     def show_license(self):
         license_window = LicenseDialog()

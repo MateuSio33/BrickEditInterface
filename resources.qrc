@@ -1,9 +1,12 @@
 <RCC>
     <qresource prefix="/">
+        <file>assets/fonts/SofiaSansCondensed-Italic-VariableFont_wght.ttf</file>
+        <file>assets/fonts/SofiaSansCondensed-VariableFont_wght.ttf</file>
         <file>assets/icons/placeholder.png</file>
         <file>assets/icons/not_found.png</file>
         <file>assets/icons/unknown.png</file>
         <file>assets/icons/missing_thumbnail.png</file>
+        <file>assets/icons/missing_thumbnail_v2.png</file>
         <file>assets/icons/brickeditinterface.png</file>
         <file>assets/icons/brickeditinterface.ico</file>
         <file>assets/icons/BackupIcon.png</file>
@@ -12,6 +15,8 @@
         <file>assets/icons/GradientIcon.png</file>
         <file>assets/icons/HomeIcon.png</file>
         <file>assets/icons/ImageIcon.png</file>
+        <file>assets/icons/CollapseSmallIcon.png</file>
+        <file>assets/icons/ExpandSmallIcon.png</file>
         <file>LICENSE</file>
     </qresource>
 </RCC>

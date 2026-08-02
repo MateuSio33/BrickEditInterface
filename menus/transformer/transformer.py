@@ -166,5 +166,5 @@ class VehicleUpscalerMenu(base.BaseMenu):
     def get_menu_name(self) -> str:
         return "Vehicle Transformer"
 
-    def get_icon(self) -> QIcon:
-        return QIcon(":/assets/icons/GizmoIcon.png")
+    def get_icon(self) -> base.MenuIconInfo:
+        return base.MenuIconInfo(QIcon(":/assets/icons/GizmoIcon.png"), True)

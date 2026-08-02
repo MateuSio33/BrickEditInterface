@@ -274,8 +274,8 @@ class GradientMaker(base.BaseMenu):
     def get_menu_name(self):
         return "Gradient Maker"
 
-    def get_icon(self):
-        return QIcon(":/assets/icons/GradientIcon.png")
+    def get_icon(self) -> base.MenuIconInfo:
+        return base.MenuIconInfo(QIcon(":/assets/icons/GradientIcon.png"), True)
 
 
     def reload_vehicle(self):

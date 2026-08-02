@@ -2,7 +2,7 @@
 
 from sys import argv, exit as sys_exit
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QFontDatabase, QFont
 import resources_rc  # your compiled Qt resources
 from systems.log import setup_logging
 
@@ -12,6 +12,12 @@ def main():
     setup_logging()
 
     app = QApplication(argv)
+
+    font_id = QFontDatabase.addApplicationFont(":/assets/fonts/SofiaSansCondensed-VariableFont_wght.ttf")
+    QFontDatabase.addApplicationFont(":/assets/fonts/SofiaSansCondensed-Italic-VariableFont_wght.ttf")
+    # QFontDatabase.addApplicationFont(":/assets/fonts/SofiaSansCondensed-VariableFont_wght.ttf")
+    family = QFontDatabase.applicationFontFamilies(font_id)[0]
+    app.setFont(QFont(family))
 
     # Title bar icon (cross-platform)
     bei_icon = QIcon(":/assets/icons/brickeditinterface.ico")

@@ -179,18 +179,18 @@ class ImageImporter(base.BaseMenu):
 
 
         # ----- NEW IMPORT -----
-        self.nim_vehicle_selector = VehicleWidget(
-            VehicleWidgetMode.CREATION,
-            must_deserialize=False,
-            vehicle_name="bei-image"
-        )
-        self.nim_vehicle_selector.vehicle_name.editingFinished.connect(self.on_new_nim_vehicle)
-        self.im[0].addWidget(self.nim_vehicle_selector)
+        # self.nim_vehicle_selector = VehicleWidget(
+        #     VehicleWidgetMode.CREATION,
+        #     must_deserialize=False,
+        #     vehicle_name="bei-image"
+        # )
+        # self.nim_vehicle_selector.vehicle_name.editingFinished.connect(self.on_new_nim_vehicle)
+        # self.im[0].addWidget(self.nim_vehicle_selector)
 
-        self.cim_vehicle_selector = VehicleWidget(
-            VehicleWidgetMode.SELECT_ONLY
-        )
-        self.im[1].addWidget(self.cim_vehicle_selector)
+        # self.cim_vehicle_selector = VehicleWidget(
+        #     VehicleWidgetMode.SELECT_ONLY
+        # )
+        # self.im[1].addWidget(self.cim_vehicle_selector)
 
 
 
@@ -298,5 +298,5 @@ class ImageImporter(base.BaseMenu):
     def get_menu_name(self):
         return "Image Importer"
 
-    def get_icon(self):
-        return QIcon(":/assets/icons/ImageIcon.png")
+    def get_icon(self) -> base.MenuIconInfo:
+        return base.MenuIconInfo(QIcon(":/assets/icons/ImageIcon.png"), True)
