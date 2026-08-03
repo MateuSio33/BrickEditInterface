@@ -127,8 +127,9 @@ class BrickWidget(SquareWidget):
                 pw = PropertyWidget.from_property(prop, self.bricks[0].get_property(prop))
             else:
                 pw = DynamicPropertyWidget.from_property(prop)
-            self.property_widgets.append(pw)
-            self.properties_layout.addWidget(pw)
+            if pw is not None:
+                self.property_widgets.append(pw)
+                self.properties_layout.addWidget(pw)
 
 
     def recieve_new_internal_name(self):
