@@ -64,8 +64,10 @@ class PropertyWidget(QWidget):
             return Vec3PropertyWidget(prop, display_name, str(value.as_tuple()))
         if isinstance(pmeta, type) and issubclass(pmeta, p.NumFractionalDigits) and value is not None:
             return Integer8PropertyWidget(prop, display_name, str(value))
+        if value is not None:
+            return UnknownPropertyWidget(prop, display_name, str(value))
 
-        return UnknownPropertyWidget(prop, display_name, str(value))
+        return None
 
     def get_dict_pair(self):
         return {self.name: self.get_value()}
