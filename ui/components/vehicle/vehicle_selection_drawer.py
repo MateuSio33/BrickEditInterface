@@ -1,10 +1,11 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize, QDateTime, QTimer
 
 import os
 from copy import deepcopy
 import struct
+from traceback import format_exc
 
 from ui.components import VehicleSelector
 from ui.widgets import Widget, Button, ToolButton, Label, LineEdit
@@ -14,6 +15,11 @@ from utils import tint_icon, str_time_since, get_vehicles_path
 import logging
 
 import brickedit
+
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from mainwindow import BrickEditInterface
 
 _logger = logging.getLogger(__name__)
 
@@ -29,8 +35,9 @@ class VehicleSelectionDrawer(Widget):
         name=True
     )
 
-    def __init__(self, parent=None):
+    def __init__(self, mw: 'BrickEditInterface', parent=None):
         super().__init__(parent)
+        self.mw = mw
         self.is_expanded = True
         self.setObjectName("vehicleSelectionDrawer")
         
@@ -181,6 +188,45 @@ class VehicleSelectionDrawer(Widget):
         return deepcopy(self.loaded_brvfile)
 
 
+    def save_brv(self, brv: brickedit.BRVFile | bytearray, warn_if_fail: bool = True) -> bool:
+        # First, serialize
+        try:
+            if isinstance(brv, brickedit.BRVFile):
+                if len(brv.bricks) > 50000:
+                    raise Exception('too long')
+                brv = brv.serialize()
+
+            # Make missing dirs
+            os.makedirs(os.path.dirname(self.loaded_vehicle_path), exist_ok=True)
+            # Then save
+            with open(self.loaded_vehicle_path, 'wb') as f:
+                f.write(brv)
+
+            return True
+
+        except PermissionError as e:
+            QMessageBox.critical(self, "Failed to save vehicle", f"BrickEdit-Interface was denied permission to save this vehicle.")
+            return False
+
+        except OSError as e:
+            QMessageBox.critical(self, "Failed to save vehicle", f"BrickEdit-Interface could not save this vehicle. Do you have sufficient storage?")
+            return False
+
+        except Exception as e:
+            if not warn_if_fail:
+                return False
+
+            if str(e) == 'too long':
+                QMessageBox.critical(self, "Failed to save vehicle", f"A vehicle can only contain up to 50,000 bricks.")
+                return False
+
+            QMessageBox.critical(self, "Failed to save vehicle", f"""\
+BrickEdit-Interface failed to save this vehicle for unknown reasons. Please report this issue on the BrickEdit discord.
+
+ERROR: {format_exc(e)}""")
+            return False
+
+
     # 'Private' stuff
 
     def load_btn_toggled(self, state: bool):
@@ -195,6 +241,7 @@ class VehicleSelectionDrawer(Widget):
     def reload_btn_pressed(self):
         self.e_vehicle_selector.request_reload(ignore_old=True)
         self.load_vehicle(self.loaded_vehicle_path)
+
 
     def load_vehicle(self, vehicle_path: str | None):
         if vehicle_path == '':
@@ -237,7 +284,7 @@ class VehicleSelectionDrawer(Widget):
         if vehicle_path is not None and os.path.exists(brv_path):
             with open(brv_path, 'rb') as f:
                 file = bytearray(f.read())
-            
+
             version = file[0]
             brvfile = brickedit.BRVFile(version)
             brvfile.deserialize(file)

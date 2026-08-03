@@ -65,7 +65,7 @@ class BrickEditInterface(QMainWindow):
         master_layout = QVBoxLayout(central)
         master_layout.setContentsMargins(0, 0, 0, 0)
         master_layout.setSpacing(0)
-        self.vehicle_selector_banner = VehicleSelectionDrawer()
+        self.vehicle_selector_banner = VehicleSelectionDrawer(self)
         master_layout.addWidget(self.vehicle_selector_banner)
 
         layout = QHBoxLayout()

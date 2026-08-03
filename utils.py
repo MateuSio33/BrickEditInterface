@@ -276,7 +276,7 @@ def tint_icon(icon: QIcon, color: str, size: tuple[int, int] | None = None) -> Q
         else:
             size_x, size_y = 128, 128
     else:
-        size_x, size_y = size
+        size_x, size_y = size, size
     pixmap = icon.pixmap(size_x, size_y)
     out = QPixmap(size_x, size_y)
     out.fill(Qt.transparent)

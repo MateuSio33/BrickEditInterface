@@ -17,6 +17,7 @@
         <file>assets/icons/ImageIcon.png</file>
         <file>assets/icons/CollapseSmallIcon.png</file>
         <file>assets/icons/ExpandSmallIcon.png</file>
+        <file>assets/icons/Information.png</file>
         <file>LICENSE</file>
     </qresource>
 </RCC>
