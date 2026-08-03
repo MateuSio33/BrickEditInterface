@@ -26,7 +26,6 @@ class Label(Widget):
 
         self._layout = QHBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
-        self._layout.setAlignment(Qt.AlignLeft)
         self.setLayout(self._layout)
 
         self.qt_widget = QLabel(parent=self) if text is None else QLabel(text, parent=self)
@@ -97,8 +96,10 @@ class Label(Widget):
             return
 
         self.tooltip_widget = QLabel()
+        self.tooltip_widget.setAlignment(Qt.AlignLeft)
         reapply_theme(self)
         self._layout.addWidget(self.tooltip_widget, alignment=Qt.AlignBaseline)
+        self._layout.addStretch()
 
 
     def _apply_theme(self, theme: Theme):
