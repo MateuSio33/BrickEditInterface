@@ -7,3 +7,4 @@ from .label import Label, HeaderLabel
 from .line_edit import LineEdit
 from .tool_button import ToolButton
 from .surface import Surface, SurfaceStyle, SurfaceRole, SurfaceState
+from .slider import Slider

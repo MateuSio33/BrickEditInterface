@@ -5,13 +5,14 @@ from PySide6.QtGui import QIcon, QColor
 from ui.widgets.widget import Widget
 from ui.theme import Theme, register_has_theme_and_apply, theme_manager
 from ui.animations.pulse import PulseAnimation
+from ui.models import TooltipContents
 
 from utils import tint_icon
 
 
 class Button(Widget):
 
-    def __init__(self, text: str, icon: QIcon | None = None, tint_icon: bool | None = None, icon_size: int = 16, parent=None):
+    def __init__(self, text: str = '', icon: QIcon | None = None, tint_icon: bool | None = None, icon_size: int = 16, parent=None):
         super().__init__(parent)
 
         self._layout = QVBoxLayout(self)
@@ -33,7 +34,7 @@ class Button(Widget):
         self.tint_icon = tint_icon if tint_icon is not None else False
         self.icon_size = icon_size
         if icon is not None and tint_icon is None:
-            raise ValueError("tint_icon must be specified if icon is not None")
+            raise ValueError("argument tint_icon must be specified if icon is not None")
 
         self.clicked = self.qt_widget.clicked
         self.toggled = self.qt_widget.toggled
@@ -71,6 +72,12 @@ class Button(Widget):
         return QColor(r, g, b, a).name(QColor.HexArgb)
 
     # basic stuff
+
+    def set_tooltip(self, tooltip: TooltipContents | None):
+        if tooltip is None:
+            self.setToolTip("")
+        else:
+            self.setToolTip(tooltip.richtext())
 
     def set_enabled(self, enabled: bool):
         self.qt_widget.setEnabled(enabled)

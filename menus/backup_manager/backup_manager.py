@@ -1,15 +1,23 @@
-from PySide6.QtWidgets import QSlider
-from PySide6.QtCore import QUrl, QSize
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtCore import QUrl, QSize, Qt
+from PySide6.QtGui import QDesktopServices, QIcon
 
+import os.path as path
 import shutil
 from send2trash import send2trash
 from pathlib import Path
 
 from menus import base
-from ..shared_widgets import *
+
+from ui.widgets import Label, HeaderLabel, Button, Surface, SurfaceStyle, Slider, LineEdit, ToolButton
+from ui.models import TooltipContents
 
 from utils import repr_file_size, dir_size, get_vehicles_path, clear_layout
+from menus.backup_manager.widgets.backup_entry import BackupEntry
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from mainwindow import BrickEditInterface
 
 
 class SettingsAndBackupsMenu(base.BaseMenu):
@@ -18,7 +26,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
     MAX_BACKUP_SIZE_KB = 32728
     BACKUP_SIZE_STEP_KB = 256
 
-    def __init__(self, mw):
+    def __init__(self, mw: 'BrickEditInterface'):
         super().__init__(mw)
         
         # ---------------
@@ -26,11 +34,9 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         # ---------------
 
         # Warning
-        self.warning_widget = SquareWidget()
-        self.warning_widget.set_state(SquareState.HIGHLIGHT)
-        self.warning_widget_layout = QHBoxLayout(self.warning_widget)
-        self.warning_widget_label = QLabel("BrickEdit-Interface backups are here to help you experiement with your creations and recover from mistakes made using this software.\nDeleting a vehicle will also delete its backups.")
-        self.warning_widget_label.setWordWrap(True)
+        self.warning_widget = Surface(surface_style=SurfaceStyle.ACCENT)
+        self.warning_widget_layout = self.warning_widget.layout()
+        self.warning_widget_label = Label("BrickEdit-Interface backups are here to help you experiement with your creations and recover from mistakes made using this software.\nDeleting a vehicle will also delete its backups.")
         self.warning_widget_layout.addWidget(self.warning_widget_label)
         self.master_layout.addWidget(self.warning_widget)
 
@@ -39,32 +45,28 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         # self.master_layout.addWidget(self.recover_label)
         
         # Delete excess backups
-        self.excess_label = QLabel("No excess backups found.")
+        self.excess_label = Label("No excess backups found.")
         self.master_layout.addWidget(self.excess_label)
         
         self.delete_layout = QHBoxLayout()
         self.master_layout.addLayout(self.delete_layout)
 
-        self.bin_excess_button = QPushButton("Send to recycle bin")
+        self.bin_excess_button = Button("Send to recycle bin")
         self.bin_excess_button.setEnabled(False)
         self.bin_excess_button.clicked.connect(lambda: self.delete_excess_backups(True))
         self.delete_layout.addWidget(self.bin_excess_button)
 
-        self.del_excess_button = QPushButton("Delete permanantly")
+        self.del_excess_button = Button("Delete permanantly")
         self.del_excess_button.setEnabled(False)
         self.del_excess_button.clicked.connect(lambda: self.delete_excess_backups(False))
         self.delete_layout.addWidget(self.del_excess_button)
         
         self.update_excess_label()
-        
-        
-        # Vehicle selector
-        self.vehicle_selector = VehicleWidget(VehicleWidgetMode.SELECTION, [self.update_backup_recovery_entries], must_deserialize=False)
-        self.master_layout.addWidget(self.vehicle_selector)
-        
+
+
         # Backup entries for that vehicle
-        self.backup_entries = SquareWidget()
-        self.backup_entries_layout = QVBoxLayout(self.backup_entries)
+        self.backup_entries = Surface()
+        self.backup_entries_layout = self.backup_entries.layout()
         self.master_layout.addWidget(self.backup_entries)
 
 
@@ -73,7 +75,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         # ---------------
         
         
-        self.backups_part_header = LargeLabel("Backup settings", 4)
+        self.backups_part_header = HeaderLabel("Backup settings", 4)
         self.master_layout.addWidget(self.backups_part_header)
         
         # Contron settings
@@ -82,34 +84,36 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.master_layout.addLayout(self.control_layout)
         
         # Reset settings
-        self.reset_settings_button = QPushButton("Reset settings")
+        self.reset_settings_button = Button("Reset settings")
         self.reset_settings_button.clicked.connect(self.reset_settings)
         self.control_layout.addWidget(self.reset_settings_button)
         
         # Open settings file in file explorer
-        self.open_settings_file_button = QPushButton("Reveal in file explorer")
+        self.open_settings_file_button = Button("Reveal in file explorer")
         self.open_settings_file_button.clicked.connect(self.open_settings_file)
         self.control_layout.addWidget(self.open_settings_file_button)
 
         self.main_window.settings.st_backup_count_limit
-        
+
         # Short term
-        self.st_label = QLabel(f"Short term backups limit / Vehicle\n→ When a vehicle is modified\n→ May be automatically deleted if it's older than {self.main_window.backups.SHORT_TERM_BACKUP_MAX_DAYS}d")
-        self.st_label.setWordWrap(True)
+        self.st_label = Label(f"Short term backups limit, per vehicle")
+        self.st_label.set_tooltip(TooltipContents(
+            "Short term backups are created when you modify a vehicle with BrickEdit-Interface.\n" +
+            f"They are considered old after {self.main_window.backups.SHORT_TERM_BACKUP_MAX_DAYS} days, and will be deleted if the vehicle is modified again.\n" +
+            f"Old short term backups can also be deleted manually by clearing excess backups."
+        ))
         self.master_layout.addWidget(self.st_label)
 
         # Short term count
         self.st_backup_count_layout = QHBoxLayout()
         self.master_layout.addLayout(self.st_backup_count_layout)
 
-        self.st_count_limit_slider = QSlider(Qt.Horizontal)
-        self.st_count_limit_slider.setValue(self.main_window.settings.st_backup_count_limit)
-        self.st_count_limit_slider.setRange(0, self.MAX_BACKUP_COUNT)
-        self.st_count_limit_slider.valueChanged.connect(lambda value: self.slider_updated(value, 'st_count'))
+        self.st_count_limit_slider = Slider(self.MAX_BACKUP_COUNT, self.main_window.settings.st_backup_count_limit)
+        self.st_count_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'st_count'))
         self.st_backup_count_layout.addWidget(self.st_count_limit_slider, 10)
 
-        self.st_count_limit_label = QLabel("Backups")
-        self.st_count_limit_label.setAlignment(Qt.AlignRight)
+        self.st_count_limit_label = Label("Backups")
+        self.st_count_limit_label.qt_widget.setAlignment(Qt.AlignRight)
         self.st_backup_count_layout.addWidget(self.st_count_limit_label, 3)
 
 
@@ -117,34 +121,39 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.st_backup_size_layout = QHBoxLayout()
         self.master_layout.addLayout(self.st_backup_size_layout)
     
-        self.st_size_limit_slider = QSlider(Qt.Horizontal)
-        self.st_size_limit_slider.setValue(self.main_window.settings.st_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)
-        self.st_size_limit_slider.setRange(0, self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB)
-        self.st_size_limit_slider.valueChanged.connect(lambda value: self.slider_updated(value, 'st_size'))
+        self.st_size_limit_slider = Slider(
+            values = self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB,
+            default_value = self.main_window.settings.st_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB
+        )
+        self.st_size_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'st_size'))
         self.st_backup_size_layout.addWidget(self.st_size_limit_slider, 10)
 
-        self.st_size_limit_label = QLabel("KB")
-        self.st_size_limit_label.setAlignment(Qt.AlignRight)
+        self.st_size_limit_label = Label("KB")
+        self.st_size_limit_label.set_alignment(Qt.AlignRight)
         self.st_backup_size_layout.addWidget(self.st_size_limit_label, 3)
 
 
         # Long term
-        self.lt_label = QLabel("Long term backups limit / Vehicle\n→ Once per session when a vehicle is modified")
-        self.lt_label.setWordWrap(True)
+        self.lt_label = Label("Long term backups limit, per vehicle")
+        self.lt_label.set_tooltip(TooltipContents(
+            "Long term backups are created once per session, the first time you modify a vehicle with BrickEdit-Interface.\n" +
+            "They cannot be deleted automatically."
+        ))
         self.master_layout.addWidget(self.lt_label)
 
         # Long term count
         self.lt_count_limit_layout = QHBoxLayout()
         self.master_layout.addLayout(self.lt_count_limit_layout)
 
-        self.lt_count_limit_slider = QSlider(Qt.Horizontal)
-        self.lt_count_limit_slider.setValue(self.main_window.settings.lt_backup_count_limit)
-        self.lt_count_limit_slider.setRange(0, self.MAX_BACKUP_COUNT)
-        self.lt_count_limit_slider.valueChanged.connect(lambda value: self.slider_updated(value, 'lt_count'))
+        self.lt_count_limit_slider = Slider(
+            values = self.MAX_BACKUP_COUNT,
+            default_value = self.main_window.settings.lt_backup_count_limit
+        )
+        self.lt_count_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'lt_count'))
         self.lt_count_limit_layout.addWidget(self.lt_count_limit_slider, 10)
 
-        self.lt_count_limit_label = QLabel("Backups")
-        self.lt_count_limit_label.setAlignment(Qt.AlignRight)
+        self.lt_count_limit_label = Label("Backups")
+        self.lt_count_limit_label.set_alignment(Qt.AlignRight)
         self.lt_count_limit_layout.addWidget(self.lt_count_limit_label, 3)
 
 
@@ -152,17 +161,18 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.lt_size_limit_layout = QHBoxLayout()
         self.master_layout.addLayout(self.lt_size_limit_layout)
 
-        self.lt_size_limit_slider = QSlider(Qt.Horizontal)
-        self.lt_size_limit_slider.setValue(self.main_window.settings.lt_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)
-        self.lt_size_limit_slider.setRange(0, self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB)
-        self.lt_size_limit_slider.valueChanged.connect(lambda value: self.slider_updated(value, 'lt_size'))
+        self.lt_size_limit_slider = Slider(
+            values = self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB,
+            default_value = self.main_window.settings.lt_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB
+        )
+        self.lt_size_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'lt_size'))
         self.lt_size_limit_layout.addWidget(self.lt_size_limit_slider, 10)
 
-        self.lt_size_limit_label = QLabel("KB")
-        self.lt_size_limit_label.setAlignment(Qt.AlignRight)
+        self.lt_size_limit_label = Label("KB")
+        self.lt_size_limit_label.set_alignment(Qt.AlignRight)
         self.lt_size_limit_layout.addWidget(self.lt_size_limit_label, 3)
 
-
+        self.main_window.vehicle_selector_banner.vehicle_loaded.connect(self.update_backup_recovery_entries)
 
         self.update_slider_labels()
         self.update_backup_recovery_entries()
@@ -182,31 +192,30 @@ class SettingsAndBackupsMenu(base.BaseMenu):
 
         # MANUAL USER INPUTS
         # Label
-        self.create_backup_label = QLabel("Create a backup manually:")
+        self.create_backup_label = Label("Create a backup manually:")
         self.backup_entries_layout.addWidget(self.create_backup_label)
         # Description and add button layout
         self.create_backup_desc_btn_layout = QHBoxLayout()
         self.backup_entries_layout.addLayout(self.create_backup_desc_btn_layout)
         # Description
-        self.create_backup_desc = QLineEdit()
-        self.create_backup_desc.setPlaceholderText("My manual backup description")
+        self.create_backup_desc = LineEdit()
+        self.create_backup_desc.set_placeholder("My manual backup description")
         self.create_backup_desc_btn_layout.addWidget(self.create_backup_desc)
         # Add button
-        self.create_backup_btn = QPushButton()
-        self.create_backup_btn_icon = QIcon.fromTheme("document-save")
-        self.create_backup_btn.setIcon(self.create_backup_btn_icon)
-        self.create_backup_btn.setFixedSize(QSize(32, 32))
+        create_backup_btn_icon = QIcon.fromTheme("document-save")
+        self.create_backup_btn = ToolButton(icon=create_backup_btn_icon, tint_icon=True)
         self.create_backup_btn.clicked.connect(self.create_manual_backup)
         self.create_backup_desc_btn_layout.addWidget(self.create_backup_btn)
 
         # Gray out manual input if no vehicle is selected
-        self.create_backup_label.setDisabled(self.vehicle_selector.brv_file is None)
-        self.create_backup_desc.setDisabled(self.vehicle_selector.brv_file is None)
-        self.create_backup_btn.setDisabled(self.vehicle_selector.brv_file is None)
+        vehicle_not_selected = not self.main_window.vehicle_selector_banner.is_vehicle_loaded()
+        self.create_backup_label.setDisabled(vehicle_not_selected)
+        self.create_backup_desc.setDisabled(vehicle_not_selected)
+        self.create_backup_btn.setDisabled(vehicle_not_selected)
         
         # Get the backups. If no vehicle is loaded, pretend one is loaded and we got an empty list
         result = []
-        brv_file = self.vehicle_selector.brv_file
+        brv_file = self.main_window.vehicle_selector_banner.get_brvfile_loc()
         if brv_file is not None:
             vehicle_file = path.dirname(brv_file)
             result = self.main_window.backups.find_backups(vehicle_file)
@@ -214,7 +223,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
 
         # If no backup is found, leave a label.
         if not result:
-            self.backup_entries_layout.addWidget(QLabel("No backups found."))
+            self.backup_entries_layout.addWidget(Label("No backups found."))
             self.update_excess_label()
             return
 
@@ -229,11 +238,11 @@ class SettingsAndBackupsMenu(base.BaseMenu):
 
 
     def create_manual_backup(self):
-        description = self.create_backup_desc.text()
+        description = self.create_backup_desc.get_text()
         if description == "":
             description = "My manual backup description"
         self.main_window.backups.create_backup(
-            path.dirname(self.vehicle_selector.brv_file),  # Vehicle directory
+            self.main_window.vehicle_selector_banner.get_vehicle_loc(),  # Vehicle directory
             description, True  # Force long-term backup
         )
         self.update_backup_recovery_entries()
@@ -252,8 +261,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         excess_size = 0
         for excess_dir in excess:
             excess_size += dir_size(excess_dir)
-        self.excess_label.setText(f"Found {len(excess)} excess backups - total size: {repr_file_size(excess_size)}")
-        self.excess_label.setWordWrap(True)
+        self.excess_label.set_text(f"Found {len(excess)} excess backups - total size: {repr_file_size(excess_size)}")
         if len(excess) > 0:
             self.bin_excess_button.setEnabled(True)
             self.del_excess_button.setEnabled(True)
@@ -300,18 +308,18 @@ class SettingsAndBackupsMenu(base.BaseMenu):
 
 
     def update_slider_labels(self):
-        self.st_count_limit_label.setText(f"{self.main_window.settings.st_backup_count_limit} Backups")
+        self.st_count_limit_label.set_text(f"{self.main_window.settings.st_backup_count_limit} Backups")
 
         st_text = repr_file_size(self.main_window.settings.st_backup_size_limit_kb * 1024, 2, 10_000)
-        self.st_size_limit_label.setText(st_text)
+        self.st_size_limit_label.set_text(st_text)
 
-        self.lt_count_limit_label.setText(f"{self.main_window.settings.lt_backup_count_limit} Backups")
+        self.lt_count_limit_label.set_text(f"{self.main_window.settings.lt_backup_count_limit} Backups")
 
         lt_text = repr_file_size(self.main_window.settings.lt_backup_size_limit_kb * 1024, 2, 10_000)
-        self.lt_size_limit_label.setText(lt_text)
+        self.lt_size_limit_label.set_text(lt_text)
 
     def update_slider_values(self):
-        self.st_count_limit_slider.setValue(self.main_window.settings.st_backup_count_limit)
-        self.st_size_limit_slider.setValue(self.main_window.settings.st_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)
-        self.lt_count_limit_slider.setValue(self.main_window.settings.lt_backup_count_limit)
-        self.lt_size_limit_slider.setValue(self.main_window.settings.lt_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)
+        self.st_count_limit_slider.set_value(self.main_window.settings.st_backup_count_limit)
+        self.st_size_limit_slider.set_value(self.main_window.settings.st_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)
+        self.lt_count_limit_slider.set_value(self.main_window.settings.lt_backup_count_limit)
+        self.lt_size_limit_slider.set_value(self.main_window.settings.lt_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB)

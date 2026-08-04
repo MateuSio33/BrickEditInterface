@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QLabel
 from PySide6.QtGui import QIcon
 
-from ui.widgets import Label, Button
+from ui.widgets import Label, Button, Slider
 import ui.theme as theme
 from ui.models import TooltipContents
 
@@ -34,6 +34,9 @@ class DeveloperTestMenu(base.BaseMenu):
         button21.clicked.connect(self.button21_clicked)
         button21.qt_widget.setToolTip("<b>Click to change theme</b><br/>test1<br/><br/>Test2<br/><br/>Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3 Test3")
         self.button21 = button21
+
+        slider21 = Slider(range(0, 50, 5), 15)
+        layout2.addWidget(slider21)
 
         
         layout2.addWidget(button21)

@@ -3,12 +3,14 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QToolButton, QSizePolicy, QVBoxLayout
 
 from ui.widgets.widget import Widget
-from ui.theme import Theme, register_has_theme_and_apply
+from ui.theme import Theme, register_has_theme_and_apply, reapply_theme
+
+from utils import tint_icon
 
 
 class ToolButton(Widget):
 
-    def __init__(self, icon: QIcon | None = None, parent=None):
+    def __init__(self, icon: QIcon | None = None, tint_icon: bool = False, parent=None):
         super().__init__(parent)
 
         self._layout = QVBoxLayout(self)
@@ -29,15 +31,21 @@ class ToolButton(Widget):
             QSizePolicy.Fixed,
             QSizePolicy.Fixed,
         )
+
+        self.og_icon = icon
+        self.tint_icon = tint_icon
         if icon:
             self.set_icon(icon)
         self.set_button_size(26)
         
         register_has_theme_and_apply(self)
 
-
-    def set_icon(self, icon: QIcon):
-        self.qt_widget.setIcon(icon)
+    def set_icon(self, icon: QIcon | None):
+        if icon is None:
+            self.qt_widget.setIcon(QIcon())
+        else:
+            self.og_icon = icon
+            register_has_theme_and_apply(self)
 
     def set_icon_from_theme(self, *names: str):
         for name in names:
@@ -52,35 +60,39 @@ class ToolButton(Widget):
         self.qt_widget.setIconSize(QSize(size - 8, size - 8))
 
     def _apply_theme(self, theme: Theme):
-        
-            self.setStyleSheet(f"""
-            QToolButton {{
-                color: {theme.text.color};
-                background-color: {theme.surface.color};
+    
+        self.setStyleSheet(f"""
+        QToolButton {{
+            color: {theme.text.color};
+            background-color: {theme.surface.color};
 
-                border: 2px solid {theme.border.color};
-                border-radius: 4px;
+            border: 2px solid {theme.border.color};
+            border-radius: 4px;
 
-                padding: 1px 4px;
+            padding: 1px 4px;
 
-                font-size: 13pt;
-            }}
+            font-size: 13pt;
+        }}
 
-            QToolButton:hover {{
-                background-color: {theme.surface.color_double};
-                border-color: {theme.border.color};
-            }}
+        QToolButton:hover {{
+            background-color: {theme.surface.color_double};
+            border-color: {theme.border.color};
+        }}
 
-            QToolButton:pressed {{
-                background-color: {theme.surface.muted};
-            }}
+        QToolButton:pressed {{
+            background-color: {theme.surface.muted};
+        }}
 
-            QToolButton:checked {{
-                background-color: {theme.accent.color};
-            }}
+        QToolButton:checked {{
+            background-color: {theme.accent.color};
+        }}
 
-            QToolButton:disabled {{
-                color: {theme.text.muted};
-                background-color: {theme.surface.muted};
-                border-color: {theme.border.muted};
-            }}""")
+        QToolButton:disabled {{
+            color: {theme.text.muted};
+            background-color: {theme.surface.muted};
+            border-color: {theme.border.muted};
+        }}""")
+            
+        # if self.og_icon is None, then None is passed to set_icon which will remove icon if it exists
+        icon = self.og_icon if (not self.tint_icon) or self.og_icon is None else tint_icon(self.og_icon, theme.text.color_hex_argb)
+        self.qt_widget.setIcon(icon)

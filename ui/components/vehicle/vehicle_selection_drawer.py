@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QSizePolicy, QMessageBox
 from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtCore import Qt, QSize, QDateTime, QTimer
+from PySide6.QtCore import Qt, QSize, QDateTime, QTimer, Signal
 
 import os
 from copy import deepcopy
@@ -28,6 +28,8 @@ struct_u16 = struct.Struct('<H')
 
 class VehicleSelectionDrawer(Widget):
     
+    vehicle_loaded = Signal(str)
+
     small_thumbnail_size = 26, 26
     large_thumbnail_size = 73, 73
 
@@ -179,6 +181,12 @@ class VehicleSelectionDrawer(Widget):
 
 
     # Public stuff
+    def get_vehicle_loc(self) -> str | None:
+        return self.loaded_vehicle_path
+
+    def get_brvfile_loc(self) -> str | None:
+        if self.loaded_vehicle_path is not None:
+            return os.path.join(self.loaded_vehicle_path, 'Vehicle.brv')
 
     def get_brvfile_ref(self) -> brickedit.BRVFile | None:
         """None if no vehicle is loaded. DO NOT EDIT!"""
@@ -305,7 +313,7 @@ ERROR: {format_exc(e)}""")
         self.c_btn_reload.set_enabled(is_vehicle_loaded)
         self.e_btn_unload.set_enabled(is_vehicle_loaded)
 
-
+        self.vehicle_loaded.emit(vehicle_path)
         _logger.info('Loading vehicle complete')
 
 

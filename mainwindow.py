@@ -32,6 +32,23 @@ class BrickEditInterface(QMainWindow):
         self.update_checker.update_available.connect(self.report_new_update)
         self.update_checker.start()
 
+        # Set up central widget and layout
+        central = QWidget()
+        central.setObjectName("appCentral")
+        central.setAttribute(Qt.WA_StyledBackground, True)
+        self.setCentralWidget(central)
+
+        master_layout = QVBoxLayout(central)
+        master_layout.setContentsMargins(0, 0, 0, 0)
+        master_layout.setSpacing(0)
+        self.vehicle_selector_banner = VehicleSelectionDrawer(self)
+        master_layout.addWidget(self.vehicle_selector_banner)
+
+        layout = QHBoxLayout()
+        master_layout.addLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
         # Initialize menus
         self.menus: list[BaseMenu] = [
             HomeMenu(self),
@@ -55,23 +72,6 @@ class BrickEditInterface(QMainWindow):
             }
             for menu in self.menus
         ]
-
-        # Set up central widget and layout
-        central = QWidget()
-        central.setObjectName("appCentral")
-        central.setAttribute(Qt.WA_StyledBackground, True)
-        self.setCentralWidget(central)
-
-        master_layout = QVBoxLayout(central)
-        master_layout.setContentsMargins(0, 0, 0, 0)
-        master_layout.setSpacing(0)
-        self.vehicle_selector_banner = VehicleSelectionDrawer(self)
-        master_layout.addWidget(self.vehicle_selector_banner)
-
-        layout = QHBoxLayout()
-        master_layout.addLayout(layout)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
 
         # Create and connect sidebar
         self.sidebar = Sidebar(menu_configs=menu_configs)
