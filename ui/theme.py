@@ -4,6 +4,50 @@ from typing import Protocol
 
 from systems.settings import settings_manager
 
+def parse_color(s):
+    s = s.lstrip("#")
+    return tuple(int(s[i:i+2], 16) for i in range(0, 8, 2))
+
+
+def format_color(c):
+    return "#{:02x}{:02x}{:02x}{:02x}".format(*c)
+
+
+def strongest_overlay(col1, col2):
+    """Returns the brightest valid overlay. If no bright overlay exists,
+    automatically increases alpha until one does. If impossible, falls back
+    to clamping."""
+
+    br, bg, bb, _ = parse_color(col1)
+    tr, tg, tb, _ = parse_color(col2)
+
+    bg = (br, bg, bb)
+    tgt = (tr, tg, tb)
+
+    alpha = 1 / 255
+
+    # Increase alpha until every channel fits in [0,255]
+    for base, target in zip(bg, tgt):
+        # Upper bound: overlay <= 255
+        if base != 255:
+            alpha = max(alpha, (target - base) / (255 - base))
+
+        # Lower bound: overlay >= 0
+        if base != 0:
+            alpha = max(alpha, (base - target) / base)
+
+    alpha = min(max(alpha, 1 / 255), 1.0)
+
+    a = round(alpha * 255)
+    alpha = a / 255.0
+
+    overlay = []
+    for base, target in zip(bg, tgt):
+        value = (target - (1 - alpha) * base) / alpha
+        overlay.append(round(min(255, max(0, value))))
+
+    return format_color((*overlay, a))
+
 
 def make_muted_color_from_hex(col: str, brightness_mult: float = 0.75) -> str:
     col = col.lstrip('#').rjust(8, 'f')
@@ -168,6 +212,89 @@ HIGH_CONTRAST = Theme(name="highcontrast", display_name="High contrast", is_high
     danger_surface=ThemeColor("#ee283050"),
     danger_border=ThemeColor("#ac191eff")
 )
+
+BR_DEFAULT = Theme(name="br_default", display_name="BR Default theme", is_highcontrast=False,
+    background=ThemeColor("#222327ff"),  # SRC: Basic widget background
+    sidebar=ThemeColor("#323439ff"),  # SRC: Value input background
+    surface=ThemeColor(strongest_overlay("#222327ff", "#323439ff")),  # Background -> Sidebar
+    border=ThemeColor("#484a51ff"),  # SRC: Widget corner. Careful to pick the brightest color, incorrect can be off by 1
+    text=ThemeColor("#edededff"),  # SRC: Average text color
+    accent=ThemeColor("#a96520ff"),  # SRC: Accent button background
+    accent_surface=ThemeColor(strongest_overlay("#323439ff", "#7b4815ff")),  # SRC: Sidebar → Muted widget accent background (eg. saved creation name label background)
+    accent_border=ThemeColor("#e68b30"),  # SRC: Accent widget corner. Careful, like for border.
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+BR_BLUE = Theme(name="br_blue", display_name="BR Blue theme", is_highcontrast=False,
+    background=ThemeColor("#2a3978ff"),  # SRC: Basic widget background
+    sidebar=ThemeColor("#3c50a5ff"),  # SRC: Value input background
+    surface=ThemeColor(strongest_overlay("#2a3978ff", "#3c50a5ff")),  # Background -> Sidebar
+    border=ThemeColor("#5570e1ff"),  # SRC: Widget corner. Careful to pick the brightest color, incorrect can be off by 1
+    text=ThemeColor("#edededff"),  # SRC: Average text color
+    accent=ThemeColor("#a96520ff"),  # SRC: Accent button background
+    accent_surface=ThemeColor(strongest_overlay("#3c50a5ff", "#7b4815ff")),  # SRC: Sidebar → Muted widget accent background (eg. saved creation name label background)
+    accent_border=ThemeColor("#e68b30ff"),  # SRC: Accent widget corner. Careful, like for border.
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+BR_CYAN = Theme(name="br_cyan", display_name="BR Cyan theme", is_highcontrast=False,
+    background=ThemeColor("#2a5749ff"),  # SRC: Basic widget background
+    sidebar=ThemeColor("#3c7966ff"),  # SRC: Value input background
+    surface=ThemeColor(strongest_overlay("#2a5749ff", "#3c7966ff")),  # Background -> Sidebar
+    border=ThemeColor("#55a68dff"),  # SRC: Widget corner. Careful to pick the brightest color, incorrect can be off by 1
+    text=ThemeColor("#edededff"),  # SRC: Average text color
+    accent=ThemeColor("#a96520ff"),  # SRC: Accent button background
+    accent_surface=ThemeColor(strongest_overlay("#3c7966ff", "#7b4815ff")),  # SRC: Sidebar → Muted widget accent background (eg. saved creation name label background)
+    accent_border=ThemeColor("#e68b30ff"),  # SRC: Accent widget corner. Careful, like for border.
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+BR_GRAY = Theme(name="br_gray", display_name="BR Gray theme", is_highcontrast=False,
+    background=ThemeColor("#4d4d4dff"),  # SRC: Basic widget background
+    sidebar=ThemeColor("#6c6c6cff"),  # SRC: Value input background
+    surface=ThemeColor(strongest_overlay("#4d4d4dff", "#6c6c6cff")),  # Background -> Sidebar
+    border=ThemeColor("#959595ff"),  # SRC: Widget corner. Careful to pick the brightest color, incorrect can be off by 1
+    text=ThemeColor("#edededff"),  # SRC: Average text color
+    accent=ThemeColor("#a96520ff"),  # SRC: Accent button background
+    accent_surface=ThemeColor(strongest_overlay("#6c6c6cff", "#7b4815ff")),  # SRC: Sidebar → Muted widget accent background (eg. saved creation name label background)
+    accent_border=ThemeColor("#e68b30ff"),  # SRC: Accent widget corner. Careful, like for border.
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+BR_ORANGE = Theme(name="br_orange", display_name="BR Orange theme", is_highcontrast=False,
+    background=ThemeColor("#7b4815ff"),  # SRC: Basic widget background
+    sidebar=ThemeColor("#a96520ff"),  # SRC: Value input background
+    surface=ThemeColor(strongest_overlay("#7b4815ff", "#a96520ff")),  # Background -> Sidebar
+    border=ThemeColor("#e68b30ff"),  # SRC: Widget corner. Careful to pick the brightest color, incorrect can be off by 1
+    text=ThemeColor("#edededff"),  # SRC: Average text color
+    accent=ThemeColor("#bc8100ff"),  # SRC: Accent button background
+    accent_surface=ThemeColor(strongest_overlay("#a96520ff", "#895d00ff")),  # SRC: Sidebar → Muted widget accent background (eg. saved creation name label background)
+    accent_border=ThemeColor("#ffb100ff"),  # SRC: Accent widget corner. Careful, like for border.
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+BR_VIOLET = Theme(name="br_violet", display_name="BR Violet theme", is_highcontrast=False,
+    background=ThemeColor("#32033aff"),
+    sidebar=ThemeColor("#470753ff"),
+    surface=ThemeColor("#d422fb21"),
+    border=ThemeColor("#640d73ff"),
+    text=ThemeColor("#edededff"),
+    accent=ThemeColor("#914aa2ff"),
+    accent_surface=ThemeColor("#eee4ff34"),
+    accent_border=ThemeColor("#c668ddff"),
+    # accent=ThemeColor("#dd4433ff"),
+    # accent_surface=ThemeColor("#dd443350"),
+    # accent_border=ThemeColor("#ff8866ff"),
+    danger=ThemeColor("#ee2830ff"),
+    danger_surface=ThemeColor("#ee283050"),
+    danger_border=ThemeColor("#ac191eff")
+)
+
 DEV_TEST = Theme(name="dev", display_name="Developer test", is_highcontrast=False,
     background=ThemeColor("#000040ff"),
     sidebar=ThemeColor("#000080ff"),
@@ -184,7 +311,11 @@ DEV_TEST = Theme(name="dev", display_name="Developer test", is_highcontrast=Fals
 
 class ThemeManager(QObject):
     theme_changed = Signal(object)  # emits a Theme
-    themes = (DARK, LIGHT, NIGHT, HIGH_CONTRAST, DEV_TEST)
+    themes = (
+        DARK, LIGHT, NIGHT, HIGH_CONTRAST,
+        BR_DEFAULT, BR_BLUE, BR_CYAN, BR_GRAY, BR_ORANGE, BR_VIOLET,
+        DEV_TEST
+    )
 
     def __init__(self):
         super().__init__()

@@ -1,8 +1,11 @@
 from PySide6.QtWidgets import QHBoxLayout, QSlider
 from PySide6.QtCore import Qt
 
-from ui.widgets import Widget
+from ui.widgets import Widget, Label
 from ui.theme import Theme, register_has_theme_and_apply
+
+
+SLIDER_SPACING = 4
 
 
 class Slider(Widget):
@@ -11,6 +14,7 @@ class Slider(Widget):
         values: list[object] | range | int,
         default_value: int = 0,
         ticks: bool = False,
+        label_on_left: bool = False,
         parent=None
     ):
         """If a list or range is passed, get_value can be used to get item at position.
@@ -19,6 +23,7 @@ class Slider(Widget):
 
         self._layout = QHBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(0)
         self.setLayout(self._layout)
 
         self.values = values
@@ -40,12 +45,40 @@ class Slider(Widget):
             self.qt_widget.setTickPosition(QSlider.TicksBelow)
         self.qt_widget.setValue(default_value)
 
-        self.value_changed = self.qt_widget.valueChanged
 
-        self._layout.addWidget(self.qt_widget)
+        self.label_enabled = False
+        self.label = Label('')
+        self.label.setFixedWidth(0)
+
+        if label_on_left:
+            self._layout.addWidget(self.label)
+            self._layout.addWidget(self.qt_widget)
+        else:
+            self._layout.addWidget(self.qt_widget)
+            self.label.set_alignment(Qt.AlignRight)
+            self._layout.addWidget(self.label)
+            
+
+        self.value_changed = self.qt_widget.valueChanged
 
         register_has_theme_and_apply(self)
 
+
+    def set_text(self, text: str | None, width: int = 0):
+        if text is None and self.label_enabled:
+            self._layout.setSpacing(0)
+            self.label.set_text('')
+            self.label.setFixedWidth(0)
+            self.label_enabled = False
+            return
+        #else:
+
+        if not self.label_enabled:
+            self._layout.setSpacing(SLIDER_SPACING)
+            self.label_enabled = True
+
+        self.label.setFixedWidth(width)
+        self.label.set_text(text)
 
     def set_value(self, value):
         return self.qt_widget.setValue(value)

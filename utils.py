@@ -264,6 +264,7 @@ def oklch_to_oklab(L, C, h):
     return (L, a, b)
 
 def tint_icon(icon: QIcon, color: str, size: tuple[int, int] | None = None) -> QIcon:
+    """Color format: '#RRGGBB' or '#RRGGBBAA'."""
     if size is None:
         idx_max = -1
         current_max = 0
@@ -288,3 +289,35 @@ def tint_icon(icon: QIcon, color: str, size: tuple[int, int] | None = None) -> Q
     painter.end()
 
     return QIcon(out)
+
+
+def stack_color(bottom: QColor, top: QColor) -> QColor:
+    sa = top.alphaF()
+    da = bottom.alphaF()
+
+    oa = sa + da * (1.0 - sa)
+
+    if oa == 0:
+        return QColor(0, 0, 0, 0)
+
+    r = (top.redF()   * sa + bottom.redF()   * da * (1.0 - sa)) / oa
+    g = (top.greenF() * sa + bottom.greenF() * da * (1.0 - sa)) / oa
+    b = (top.blueF()  * sa + bottom.blueF()  * da * (1.0 - sa)) / oa
+
+    return QColor.fromRgbF(r, g, b, oa)
+
+
+def stack_qcolors(*colors: str | QColor) -> QColor:
+    """Color format: '#AARRGGBB'. Applies each color on top of the previous in order"""
+    qcolors = [QColor(color) if isinstance(color, str) else color for color in colors]
+    assert len(qcolors) > 1, "Must provide at least two colors"
+    final = qcolors[0]
+
+    for i in range(1, len(qcolors)):
+        final = stack_color(final, qcolors[i])
+    return final
+
+    
+def stack_str_colors(*colors: str | QColor) -> str:
+    """Returns in #AARRGGBB format"""
+    return stack_qcolors(*colors).name(QColor.NameFormat.HexArgb)

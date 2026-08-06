@@ -108,7 +108,10 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.st_backup_count_layout = QHBoxLayout()
         self.master_layout.addLayout(self.st_backup_count_layout)
 
-        self.st_count_limit_slider = Slider(self.MAX_BACKUP_COUNT, self.main_window.settings.st_backup_count_limit)
+        self.st_count_limit_slider = Slider(
+            values = range(0, self.MAX_BACKUP_COUNT),
+            default_value = self.main_window.settings.st_backup_count_limit
+        )
         self.st_count_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'st_count'))
         self.st_backup_count_layout.addWidget(self.st_count_limit_slider, 10)
 
@@ -122,7 +125,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.master_layout.addLayout(self.st_backup_size_layout)
     
         self.st_size_limit_slider = Slider(
-            values = self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB,
+            values = range(0, self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB),
             default_value = self.main_window.settings.st_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB
         )
         self.st_size_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'st_size'))
@@ -136,7 +139,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         # Long term
         self.lt_label = Label("Long term backups limit, per vehicle")
         self.lt_label.set_tooltip(TooltipContents(
-            "Long term backups are created once per session, the first time you modify a vehicle with BrickEdit-Interface.\n" +
+            "Long term backups are created when a vehicle is modified for the first time in the current BrickEdit-Interface session.\n" +
             "They cannot be deleted automatically."
         ))
         self.master_layout.addWidget(self.lt_label)
@@ -146,7 +149,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.master_layout.addLayout(self.lt_count_limit_layout)
 
         self.lt_count_limit_slider = Slider(
-            values = self.MAX_BACKUP_COUNT,
+            values = range(0, self.MAX_BACKUP_COUNT),
             default_value = self.main_window.settings.lt_backup_count_limit
         )
         self.lt_count_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'lt_count'))
@@ -162,7 +165,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         self.master_layout.addLayout(self.lt_size_limit_layout)
 
         self.lt_size_limit_slider = Slider(
-            values = self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB,
+            values = range(0, self.MAX_BACKUP_SIZE_KB // self.BACKUP_SIZE_STEP_KB),
             default_value = self.main_window.settings.lt_backup_size_limit_kb // self.BACKUP_SIZE_STEP_KB
         )
         self.lt_size_limit_slider.value_changed.connect(lambda value: self.slider_updated(value, 'lt_size'))

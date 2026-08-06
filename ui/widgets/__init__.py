@@ -2,6 +2,7 @@ from .widget import Widget
 
 from .button import Button
 from .colored_icon import ColoredIcon
+from .combobox import ComboBox
 from .content_sized_scroll_area import ContentSizedScrollArea
 from .label import Label, HeaderLabel
 from .line_edit import LineEdit

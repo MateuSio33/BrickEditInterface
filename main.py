@@ -12,6 +12,7 @@ def main():
     setup_logging()
 
     app = QApplication(argv)
+    # app.setStyle("Fusion")
 
     font_id = QFontDatabase.addApplicationFont(":/assets/fonts/SofiaSansCondensed-VariableFont_wght.ttf")
     QFontDatabase.addApplicationFont(":/assets/fonts/SofiaSansCondensed-Italic-VariableFont_wght.ttf")
