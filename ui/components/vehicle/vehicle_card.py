@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QSizePolicy, QLayout
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QSizePolicy
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtCore import Qt, QSize, Signal
 
@@ -8,9 +8,9 @@ from struct import error as struct_error
 from dataclasses import dataclass
 
 from ui.widgets import Widget, Label, Surface, SurfaceStyle, SurfaceRole
-from ui.theme import Theme, register_has_theme_and_apply, theme_manager
+from ui.theme import Theme, register_has_theme_and_apply
 
-from utils import get_vehicles_path, str_time_since
+from utils import str_time_since
 
 import brickedit
 

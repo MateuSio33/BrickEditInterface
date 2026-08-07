@@ -121,8 +121,19 @@ class ComboBox(Widget):
         )
         self.qt_widget.view().setItemDelegate(self.delegate)
 
+        self.item_changed = self.qt_widget.currentIndexChanged
+
         register_has_theme_and_apply(self)
 
+
+    def get_current_idx(self) -> int:
+        return self.qt_widget.currentIndex()
+
+    def get_current_text(self) -> str:
+        return self.qt_widget.currentText()
+
+    def clear_items(self):
+        self.qt_widget.clear()
 
     def add_item(self, text: str, icon: QIcon | None = None, *args, **kwargs):
         self._og_icons.append(icon)

@@ -7,8 +7,9 @@ class TooltipContents:
     description: str | None = None
 
     def richtext(self):
+        text_br = self.text.replace('\n', '<br>')
         if self.description is None or self.description == "":
-            return self.text
+            return f"<html>{text_br}</html>"
 
         description_br = self.description.replace('\n', '<br>')
-        return f"<b>{self.text}</b><br><br>{description_br}"
+        return f"<b>{text_br}</b><br><br>{description_br}"

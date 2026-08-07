@@ -350,6 +350,10 @@ class SupportsTheme(Protocol):
 def reapply_theme(target: SupportsTheme):
     target._apply_theme(theme_manager.current())
 
+def repolish(target):
+    target.style().unpolish(target)
+    target.style().polish(target)
+
 def register_has_theme_and_apply(target: SupportsTheme, theme_manager: Theme = theme_manager):
     """Registers anything which supports themes """
     theme_manager.theme_changed.connect(target._apply_theme)

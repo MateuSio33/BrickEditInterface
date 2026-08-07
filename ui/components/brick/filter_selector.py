@@ -3,7 +3,16 @@ from PySide6.QtCore import Qt
 
 from ui.widgets import Widget, Button, Label, ComboBox
 from ui.theme import Theme, register_has_theme_and_apply
+from ui.components.brick.filters import *
 from ui.models import TooltipContents
+
+from ui.components.brick.filter_selector_entry import FilterEntry
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.components.brick.brick_selector import BrickSelector
+    from mainwindow import BrickEditInterface
+
 
 
 FILTER_MODE_TOOLTIP = TooltipContents(text="""\
@@ -23,15 +32,22 @@ NAND_FILTER = "Must not", "must not"
 
 class FilterSelector(Widget):
 
-    def __init__(self, parent=None):
+    WIDTH = 250
+
+    def __init__(self, mw: 'BrickEditInterface', brick_selector: 'BrickSelector', parent=None):
         super().__init__(parent)
+        self.mw = mw
+
         self.setProperty("filter_selector", True)
         self.setContentsMargins(0, 0, 0, 0)
         self.setWindowFlags(Qt.Popup)
 
+        self.setFixedWidth(self.WIDTH)
+
         self.master_layout = QVBoxLayout(self)
         self.setLayout(self.master_layout)
 
+        self.brick_selector = brick_selector
 
         # Filter mode
         self.filter_mode_layout = QHBoxLayout()
@@ -49,8 +65,34 @@ class FilterSelector(Widget):
         self.filter_mode_combo_box.add_item(NAND_FILTER[0])
         self.filter_mode_layout.addWidget(self.filter_mode_combo_box)
 
+        self.filter_entries: list[FilterEntry] = []
+        for filter_cls in filter_classes:
+            filter_entry = FilterEntry(self.mw, self, filter_cls)
+            self.filter_entries.append(filter_entry)
+            self.master_layout.addWidget(filter_entry)
+            filter_entry.filter_selected.connect(self.entry_adds_filter)
 
+        self.filter_mode_combo_box.item_changed.connect(self.update_modes)
         register_has_theme_and_apply(self)
+
+
+    def entry_adds_filter(self, entry: FilterEntry):
+        self.brick_selector.add_filter(entry.filter_class.new(self.mw, self.get_mode()))
+        self.hide()
+
+
+    def get_mode(self) -> FilterMode:
+        return {
+            OR_FILTER[0]: FilterMode.SHOULD,
+            NOR_FILTER[0]: FilterMode.SHOULD_NOT,
+            AND_FILTER[0]: FilterMode.MUST,
+            NAND_FILTER[0]: FilterMode.MUST_NOT,
+        }[self.filter_mode_combo_box.get_current_text()]
+
+
+    def update_modes(self):
+        for filter_entry in self.filter_entries:
+            filter_entry.update_mode()
 
 
     def _apply_theme(self, theme: Theme):

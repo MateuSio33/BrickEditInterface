@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QRegularExpressionValidator
 
-from ui.widgets import Label, Button, Slider, ComboBox
+from ui.widgets import Label, Button, Slider, ComboBox, LineEdit
 import ui.theme as theme
 from ui.models import TooltipContents
 
@@ -51,6 +51,12 @@ class DeveloperTestMenu(base.BaseMenu):
         slider21.value_changed.connect(self.update_slider21)
         self.slider21 = slider21
         layout2.addWidget(slider21)
+
+
+        lineedit21 = LineEdit('1A2B3C4D')
+        validator = QRegularExpressionValidator("^[0-9A-Fa-f]{8}$")
+        lineedit21.set_validator(validator)
+        layout2.addWidget(lineedit21)
 
 
         layout2.addStretch()

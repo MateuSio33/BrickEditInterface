@@ -13,7 +13,7 @@ class _QLabel(QLabel):
     """QLabel that paints a small icon flush against the end of the last line of text."""
 
     ICON_TEXT_MARGIN = 5    # px between text and icon
-    ICON_VERTICAL_OFFSET = 0  # px to nudge icon up(-) or down(+) relative to vertical centre
+    ICON_VERTICAL_OFFSET = 1  # px to nudge icon up(-) or down(+) relative to vertical centre
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,29 +75,83 @@ class _QLabel(QLabel):
 
     def paintEvent(self, event):
         super().paintEvent(event)
+
         if not self._icon_visible or self._icon_pixmap is None:
             return
 
-        fm = self.fontMetrics()
+        from PySide6.QtGui import QTextLayout, QTextOption
+
         cr = self.contentsRect()
 
-        last_line_x = self._last_line_end_x()
-        x = cr.left() + last_line_x + self.ICON_TEXT_MARGIN
+        option = QTextOption()
+        option.setWrapMode(
+            QTextOption.WrapMode.WordWrap
+            if self.wordWrap()
+            else QTextOption.WrapMode.NoWrap
+        )
+        option.setAlignment(self.alignment())
 
-        # Vertically align to the last line's centre
-        # Count lines by re-using layout height vs single line height
-        line_height = fm.height()
-        y = cr.top() + max(0, cr.height() - line_height) + \
-            (line_height - self._icon_size) // 2 + self.ICON_VERTICAL_OFFSET
+        layout = QTextLayout(self.text(), self.font())
+        layout.setTextOption(option)
+
+        layout.beginLayout()
+
+        lines = []
+        y = 0.0
+
+        while True:
+            line = layout.createLine()
+            if not line.isValid():
+                break
+
+            line.setLineWidth(cr.width())
+            line.setPosition(QPointF(0, y))
+            y += line.height()
+            lines.append(line)
+
+        layout.endLayout()
+
+        if not lines:
+            return
+
+        last = lines[-1]
+
+        text_height = int(y)
+
+        alignment = self.alignment()
+
+        if alignment & Qt.AlignBottom:
+            text_top = cr.bottom() - text_height + 1
+        elif alignment & Qt.AlignVCenter:
+            text_top = cr.top() + (cr.height() - text_height) // 2
+        else:  # Top (default)
+            text_top = cr.top()
+
+        x = (
+            cr.left()
+            + int(last.cursorToX(last.textLength())[0])
+            + self.ICON_TEXT_MARGIN
+        )
+
+        y = (
+            text_top
+            + int(last.y())
+            + (int(last.height()) - self._icon_size) // 2
+            + self.ICON_VERTICAL_OFFSET
+        )
 
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.drawPixmap(x, y, self._icon_pixmap.scaled(
-            self._icon_size, self._icon_size,
-            Qt.KeepAspectRatio, Qt.SmoothTransformation
-        ))
-        painter.end()
-
+        painter.drawPixmap(
+            x,
+            y,
+            self._icon_pixmap.scaled(
+                self._icon_size,
+                self._icon_size,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            ),
+        )
 
 
 class Label(Widget):
@@ -142,6 +196,7 @@ class Label(Widget):
 
     def set_text(self, text: str):
         self.qt_widget.setText(text)
+        self.qt_widget.update()
 
     def set_font_size(self, size: int):
         font = self.qt_widget.font()
@@ -178,7 +233,7 @@ class Label(Widget):
         return self.qt_widget.setAlignment(*args, **kwargs)
 
     def _update_tooltip_widget(self):
-        self.tooltip_widget = True  # flag so callers using `is not None` still work
+        self.tooltip_widget = True  # flag so callers using is not None still work
         self.qt_widget.set_icon_visible(self.tooltip_enabled)
 
     def _apply_theme(self, theme: Theme):

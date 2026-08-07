@@ -7,11 +7,11 @@ from copy import deepcopy
 import struct
 from traceback import format_exc
 
-from ui.components import VehicleSelector
+from ui.components import VehicleSelector, VehicleData
 from ui.widgets import Widget, Button, ToolButton, Label, LineEdit
 from ui.theme import Theme, register_has_theme_and_apply
 
-from utils import tint_icon, str_time_since, get_vehicles_path
+from utils import tint_icon, str_time_since
 import logging
 
 import brickedit
@@ -65,6 +65,7 @@ class VehicleSelectionDrawer(Widget):
 
         self.loaded_vehicle_path: str | None = None
         self.loaded_brvfile: brickedit.BRVFile | None = None
+        self.loaded_brvfile_data: VehicleData | None = None
         self.last_loaded: QDateTime | None = QDateTime.currentDateTime()
 
         # ==================== PREP
@@ -192,8 +193,22 @@ class VehicleSelectionDrawer(Widget):
         """None if no vehicle is loaded. DO NOT EDIT!"""
         return self.loaded_brvfile
 
+    def get_brvfile_ref_data(self) -> VehicleData | None:
+        """None if no vehicle is loaded. DO NOT EDIT!"""
+        return self.loaded_brvfile_data
+
     def get_brvfile_copy(self) -> brickedit.BRVFile | None:
         return deepcopy(self.loaded_brvfile)
+
+    def _reset_brvfile_ref(self):
+        """Sets loaded brvfile to None and removes all other data related to this vehicle."""
+        self.loaded_brvfile = None
+        self.loaded_brvfile_data = None
+
+    def _set_brvfile_ref(self, brvfile):
+        """Sets brvfile ref and creates other data"""
+        self.loaded_brvfile = brvfile
+        self.loaded_brvfile_data = VehicleData(brvfile)
 
 
     def save_brv(self, brv: brickedit.BRVFile | bytearray, warn_if_fail: bool = True) -> bool:
@@ -287,7 +302,7 @@ ERROR: {format_exc(e)}""")
             self.set_vehicle_name(name, edit_file=False)
 
         # Load brv
-        self.loaded_brvfile = None
+        self._reset_brvfile_ref()
         brv_path = os.path.join(vehicle_path_strictstr, 'Vehicle.brv')
         if vehicle_path is not None and os.path.exists(brv_path):
             with open(brv_path, 'rb') as f:
@@ -296,7 +311,7 @@ ERROR: {format_exc(e)}""")
             version = file[0]
             brvfile = brickedit.BRVFile(version)
             brvfile.deserialize(file)
-            self.loaded_brvfile = brvfile
+            self._set_brvfile_ref(brvfile)
 
         self.last_loaded = QDateTime.currentDateTime()
 

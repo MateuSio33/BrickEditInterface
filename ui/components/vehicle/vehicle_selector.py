@@ -3,11 +3,10 @@ from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt, Signal
 
 import os
-from time import perf_counter
 from enum import Enum
 
 from ui.components import VehicleCard, VehicleCardData
-from ui.widgets import Widget, Surface, Label, LineEdit, ToolButton, ContentSizedScrollArea
+from ui.widgets import Widget, Surface, LineEdit, ToolButton, ContentSizedScrollArea
 from ui.theme import Theme, register_has_theme_and_apply
 
 from utils import tint_icon, get_vehicles_path, get_vehicle_version
