@@ -37,14 +37,14 @@ class Sidebar(QWidget):
         scroll.setFrameShape(QScrollArea.NoFrame)
         scroll.setObjectName("menuScroll")
 
-        container = QWidget()
-        container.setObjectName("sidebarContainer")
-        layout = QVBoxLayout(container)
+        self.container = QWidget()
+        self.container.setObjectName("sidebarContainer")
+        layout = QVBoxLayout(self.container)
         layout.setContentsMargins(6, 6, 0, 0)
         layout.setSpacing(6)
         
         self.setAttribute(Qt.WA_StyledBackground, True)
-        container.setAttribute(Qt.WA_StyledBackground, True)
+        self.container.setAttribute(Qt.WA_StyledBackground, True)
 
         self.buttons = []
         self.menu_configs = menu_configs
@@ -71,7 +71,7 @@ class Sidebar(QWidget):
             self.buttons[0].setChecked(True)
 
         layout.addStretch()
-        scroll.setWidget(container)
+        scroll.setWidget(self.container)
         main_layout.addWidget(scroll)
 
         register_has_theme_and_apply(self)

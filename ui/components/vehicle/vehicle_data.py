@@ -37,6 +37,11 @@ class VehicleData:
 
         self.editor_groups: dict[str, list[brickedit.Brick]] = {}
         self.weld_groups: dict[str, list[brickedit.Brick]] = {}
+        self.unnamed_editor_groups: list[list[brickedit.Brick]] = []
+        self.unnamed_weld_groups: list[list[brickedit.Brick]] = []
+        self.not_in_editor_group: list[brickedit.Brick] = []
+        self.not_in_weld_group: list[brickedit.Brick] = []
+
 
         self.unique_properties: set[str] = set()
 
@@ -97,3 +102,9 @@ class VehicleData:
 
         self.editor_groups = {editor_be_to_bei[be_group]: bricklist for be_group, bricklist in editor_grp_to_bricks.items() if be_group in editor_be_to_bei}
         self.weld_groups = {weld_be_to_bei[be_group]: bricklist for be_group, bricklist in weld_grp_to_bricks.items() if be_group in weld_be_to_bei}
+
+        self.unnamed_editor_groups = [bricklist for be_group, bricklist in editor_grp_to_bricks.items() if be_group not in editor_be_to_bei]
+        self.unnamed_weld_groups = [bricklist for be_group, bricklist in weld_grp_to_bricks.items() if be_group not in weld_be_to_bei]
+
+        self.not_in_editor_group = [brick for brick in brvfile.bricks if brick.ref.editor is None]
+        self.not_in_weld_group = [brick for brick in brvfile.bricks if brick.ref.weld is None]

@@ -17,6 +17,23 @@ VERSION = "2.0.0"
 DEV_VERSION = True
 
 
+
+class Sentinel:
+
+    _instances = {}
+
+    def __new__(cls, name: str):
+
+        if name not in cls._instances:
+            instance = super().__new__(cls)
+            instance.name = name
+            cls._instances[name] = instance
+        return cls._instances[name]
+
+    def __repr__(self):
+        return f"<{self.name}>"
+
+
 def str_time_since(seconds):
     MINUTE, HOUR, DAY, MONTH, YEAR = 60, 60 * 60, 24 * 60 * 60, 30 * 24 * 60 * 60, 365 * 24 * 60 * 60
     if seconds < MINUTE:
@@ -71,7 +88,7 @@ def dir_size(path):
 def get_random_color(alpha: bool) -> QColor:
     h = uniform(0, 1)
     s = uniform(0.5, 1)
-    v = uniform(0.2, 0.9)
+    v = uniform(0.5, 0.9)
     if alpha:
         return QColor.fromHsvF(h, s, v, uniform(0.85, 1))
     else:

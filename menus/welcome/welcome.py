@@ -6,8 +6,8 @@ from menus import base
 from ..shared_widgets import *
 
 from utils import VERSION, DEV_VERSION
-from ui.widgets import Label, HeaderLabel, Button
-
+from ui.widgets import Label, StyledLabel, LabelStyle, Button, Switcher
+from ui.theme import theme_manager
 
 
 class LicenseDialog(QDialog):
@@ -79,6 +79,12 @@ class HomeMenu(base.BaseMenu):
         title_block_layout.addWidget(self.bei_text_label)
         title_block_layout.addWidget(version_label)
         title_block_layout.addStretch()
+
+        # Theme
+        self.theme_switcher = Switcher([theme.display_name for theme in theme_manager.themes], theme_manager.current_idx(), looping=True)
+        self.theme_switcher.index_changed.connect(self.update_theme)
+        self.master_layout.addWidget(self.theme_switcher)
+
 
         # Center the whole block in the window
         title_block_container = QWidget()
@@ -156,7 +162,7 @@ Our backup system lets you adjust both how many and how large the backups of a v
 
             if welcome_label_text.strip().startswith('#'):
                 welcome_label_text = welcome_label_text.replace('#', '')
-                welcome_label = HeaderLabel(welcome_label_text, 5)
+                welcome_label = StyledLabel(welcome_label_text, LabelStyle.HEADER_5)
             else:
                 welcome_label = Label(welcome_label_text)
             self.welcome_labels.append(welcome_label)
@@ -164,6 +170,10 @@ Our backup system lets you adjust both how many and how large the backups of a v
 
 
         self.master_layout.addStretch()
+
+
+    def update_theme(self):
+        theme_manager.set_theme(theme_manager.themes[self.theme_switcher.get_idx()])
 
 
     def get_menu_name(self):

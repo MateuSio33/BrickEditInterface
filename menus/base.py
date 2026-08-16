@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from ui.widgets import HeaderLabel
+from ui.widgets import StyledLabel, LabelStyle
 from ui.theme import Theme, register_has_theme_and_apply
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ class BaseMenu(QWidget):
         self.main_window: "BrickEditInterface" = mw
         self.master_layout = QVBoxLayout(self)
         if header:
-            self.header_label = HeaderLabel(self.get_menu_name(), 2, margins_mult=0)
+            self.header_label = StyledLabel(self.get_menu_name(), LabelStyle.HEADER_2, margins_mult=0)
             self.master_layout.addWidget(self.header_label)
         self.setLayout(self.master_layout)
 

@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QLineEdit, QVBoxLayout
-from PySide6.QtGui import QValidator
+from PySide6.QtGui import QValidator, QPalette, QColor
 
 from ui.widgets import Widget
-from ui.theme import Theme, register_has_theme_and_apply, repolish
+from ui.theme import Theme, register_has_theme_and_apply, repolish, reapply_theme
 
 
 class _QLineEdit(QLineEdit):
@@ -24,6 +24,8 @@ class LineEdit(Widget):
         self.placeholder = placeholder
         self.force_validation = force_validation
         self._last_acceptable = default
+
+        self.border_color: str | None = None
 
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
@@ -58,6 +60,17 @@ class LineEdit(Widget):
         return self.qt_widget.text()
 
 
+    def set_text(self, text: str):
+        self.qt_widget.setText(text)
+        self._on_text_changed(text)
+
+
+    def set_border_color(self, color: str | None):
+        """Force border color. Color format: '#AARRGGBB'. Set to None to go back to default."""
+        self.border_color = color
+        reapply_theme(self)
+
+
     def set_validator(self, validator):
         self.qt_widget.setValidator(validator)
 
@@ -82,6 +95,13 @@ class LineEdit(Widget):
         self.qt_widget.setProperty('validation', state_str)
         repolish(self.qt_widget)
 
+
+
+    def select_all(self):
+        self.qt_widget.selectAll()
+
+
+
     def _on_text_changed(self, text):
         validator = self.qt_widget.validator()
         if validator is None:
@@ -102,12 +122,16 @@ class LineEdit(Widget):
             self.qt_widget.setText(self._last_acceptable)
 
     def _apply_theme(self, theme: Theme):
+
+        border_color = self.border_color if self.border_color is not None else theme.border.color
+        border_color_disabled = self.border_color if self.border_color is not None else theme.border.muted
+
         self.setStyleSheet(f"""
             QLineEdit {{
                 color: {theme.text.color};
                 background-color: {theme.surface.color};
 
-                border: 2px solid {theme.border.color};
+                border: 2px solid {border_color};
                 border-radius: 4px;
 
                 padding: 0px 4px;
@@ -141,7 +165,7 @@ class LineEdit(Widget):
             QLineEdit:disabled {{
                 color: {theme.text.muted};
                 background-color: {theme.surface.muted};
-                border-color: {theme.border.muted};
+                border-color: {border_color_disabled};
             }}
             QLineEdit:disabled[validation="bad"] {{
                 background-color: {theme.danger_surface.muted};

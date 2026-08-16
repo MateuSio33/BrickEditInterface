@@ -6,7 +6,10 @@ from ui.widgets.widget import Widget
 from ui.theme import Theme, register_has_theme_and_apply, reapply_theme
 from ui.models import TooltipContents
 
+from typing import ClassVar
 from utils import tint_icon
+
+from dataclasses import dataclass
 
 
 class _QLabel(QLabel):
@@ -163,6 +166,7 @@ class Label(Widget):
         font_size = 13, font_weight = 400,
         muted = False,
         word_wrap = True,
+        center_text = False,
         parent = None
     ):
         self.is_muted = muted
@@ -177,6 +181,9 @@ class Label(Widget):
         self.set_font_weight(font_weight)
         self.qt_widget.setWordWrap(word_wrap)
 
+        if center_text:
+            self.qt_widget.setAlignment(Qt.AlignCenter)
+
         self.tooltip_widget = None  # kept for API compat, no longer a real widget
         self.tooltip_enabled = False
 
@@ -190,9 +197,10 @@ class Label(Widget):
         register_has_theme_and_apply(self)
 
     def set_muted(self, muted: bool):
-        self.is_muted = muted
-        self.qt_widget.setProperty('muted', muted)
-        reapply_theme(self)
+        if muted != self.is_muted:
+            self.is_muted = muted
+            self.qt_widget.setProperty('muted', muted)
+            reapply_theme(self)
 
     def set_text(self, text: str):
         self.qt_widget.setText(text)
@@ -252,20 +260,43 @@ class Label(Widget):
         """)
 
 
-class HeaderLabel(Label):
 
-    _LEVEL_TO_SIZE = {
-        1: (26, 12, 700),
-        2: (22, 10, 700),
-        3: (18, 8,  700),
-        4: (16, 7,  700),
-        5: (14, 6,  700),
-    }
+@dataclass(frozen=True)
+class LabelStyle:
+    font_size: int
+    font_weight: int
+    margins: tuple[int | None, int | None, int | None, int | None]
+    muted: bool
 
-    def __init__(self, text, level: int, center_text=False, margins_mult=1, parent=None):
-        assert level in self._LEVEL_TO_SIZE
-        px_size, top_margin, weight = self._LEVEL_TO_SIZE[level]
-        super().__init__(text, px_size, weight, parent=parent)
-        self.setContentsMargins(0, margins_mult * top_margin, 0, 0)
-        if center_text:
-            self.qt_widget.setAlignment(Qt.AlignCenter)
+    HEADER_1: ClassVar["LabelStyle"]
+    HEADER_2: ClassVar["LabelStyle"]
+    HEADER_3: ClassVar["LabelStyle"]
+    HEADER_4: ClassVar["LabelStyle"]
+    HEADER_5: ClassVar["LabelStyle"]
+
+    SUBTEXT_0: ClassVar["LabelStyle"]
+    SUBTEXT_1: ClassVar["LabelStyle"]
+
+LabelStyle.HEADER_1 = LabelStyle(26, 700, (None, 12, None, None), False)
+LabelStyle.HEADER_2 = LabelStyle(22, 700, (None, 10, None, None), False)
+LabelStyle.HEADER_3 = LabelStyle(18, 700, (None, 8, None, None), False)
+LabelStyle.HEADER_4 = LabelStyle(16, 650, (None, 7, None, None), False)
+LabelStyle.HEADER_5 = LabelStyle(14, 600, (None, 6, None, None), False)
+
+LabelStyle.SUBTEXT_0 = LabelStyle(11, 400, (None, 0, None, None), False)
+LabelStyle.SUBTEXT_1 = LabelStyle(9, 500, (None, 0, None, -4), True)
+
+
+class StyledLabel(Label):
+
+    def __init__(self, text, style: LabelStyle, center_text=False, margins_mult=1, muted: bool | None = None, parent=None):
+        super().__init__(text,
+            style.font_size,
+            style.font_weight,
+            muted=style.muted if muted is None else muted,
+            center_text = center_text,
+            parent=parent
+        )
+
+        margins = [m*margins_mult if m is not None else 0 for m in style.margins]
+        self.setContentsMargins(*margins)

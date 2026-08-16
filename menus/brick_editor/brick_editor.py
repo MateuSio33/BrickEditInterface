@@ -4,7 +4,7 @@ from os import path, makedirs
 
 from menus import base
 
-from ui.components import BrickSelector
+from ui.components import BrickSelector, VehicleBricksEditor
 
 from brickedit import *
 from utils import try_serialize
@@ -25,6 +25,8 @@ class EditBrickMenu(base.BaseMenu):
         self.brick_selector = BrickSelector(mw)
         self.master_layout.addWidget(self.brick_selector)
 
+        self.vbe = VehicleBricksEditor(mw, self.brick_selector)
+        self.master_layout.addWidget(self.vbe)
 
         self.save_button = QPushButton("Save changes")
         self.master_layout.addWidget(self.save_button)

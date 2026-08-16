@@ -10,7 +10,7 @@ from utils import tint_icon
 
 class ToolButton(Widget):
 
-    def __init__(self, icon: QIcon | None = None, tint_icon: bool = False, parent=None):
+    def __init__(self, icon: QIcon | None = None, tint_icon: bool = False, muted = False, parent=None):
         super().__init__(parent)
 
         self._layout = QVBoxLayout(self)
@@ -34,6 +34,8 @@ class ToolButton(Widget):
 
         self.og_icon = icon
         self.tint_icon = tint_icon
+        self.muted = muted
+        self.enabled = True
         if icon:
             self.set_icon(icon)
         self.set_button_size(26)
@@ -58,6 +60,23 @@ class ToolButton(Widget):
     def set_button_size(self, size: int):
         self.qt_widget.setFixedSize(size, size)
         self.qt_widget.setIconSize(QSize(size - 8, size - 8))
+
+
+    def is_muted(self) -> bool:
+        return self.muted
+
+    def set_muted(self, muted):
+        if muted != self.muted:
+            self.muted = muted
+            reapply_theme(self)
+
+
+    def set_enabled(self, enabled: bool):
+        if enabled != self.enabled:
+            self.enabled = enabled
+            self.qt_widget.setEnabled(enabled)
+            reapply_theme(self)
+
 
     def _apply_theme(self, theme: Theme):
     
@@ -95,4 +114,8 @@ class ToolButton(Widget):
             
         # if self.og_icon is None, then None is passed to set_icon which will remove icon if it exists
         icon = self.og_icon if (not self.tint_icon) or self.og_icon is None else tint_icon(self.og_icon, theme.text.color_hex_argb)
+
+        if self.muted or not self.enabled:
+            icon = tint_icon(icon, theme.base.muted_hex_argb)
+
         self.qt_widget.setIcon(icon)

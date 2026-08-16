@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtGui import QIcon, QRegularExpressionValidator
 
-from ui.widgets import Label, Button, Slider, ComboBox, LineEdit
+from ui.widgets import Label, Button, Slider, ComboBox, LineEdit, NumberChannelEdit, ChannelMode, StyledLabel, LabelStyle, Switcher
 import ui.theme as theme
 from ui.models import TooltipContents
 
@@ -14,12 +14,37 @@ class DeveloperTestMenu(base.BaseMenu):
     def __init__(self, mw):
         super().__init__(mw)
 
+        # --------------------- LAYOUT 1 ----------------------
+
+
         layout1 = QVBoxLayout()
-        label11 = QLabel("First menu")
-        layout1.addWidget(label11)
-        label12 = QLabel("Second menu")
-        layout1.addWidget(label12)
+
+        nce11 = NumberChannelEdit()
+        nce11.set_placeholder("Float 32, no clamps")
+        layout1.addWidget(nce11)
+
+        nce12 = NumberChannelEdit(minimum=0)
+        nce12.set_placeholder("Float 32, [0, +inf]")
+        layout1.addWidget(nce12)
+
+        nce13 = NumberChannelEdit(mode=ChannelMode.FLOAT64, allow_nan=False)
+        nce13.set_placeholder("Float 64, no NaN")
+        layout1.addWidget(nce13)
+
+        ncesl1411 = StyledLabel("NUM FRACTIONAL DIGITS", style=LabelStyle.SUBTEXT_1)
+        layout1.addWidget(ncesl1411)
+
+        nce14 = NumberChannelEdit(mode=ChannelMode.INT, minimum=-128, maximum=127)
+        nce14.set_placeholder("Int, [-128, 127]")
+        layout1.addWidget(nce14)
+
+        switcher11 = Switcher(["First", "Second", "Third", "Fourth", "Last"])
+        layout1.addWidget(switcher11)
+
         layout1.addStretch()
+
+
+        # --------------------- LAYOUT 2 ----------------------
 
         layout2 = QVBoxLayout()
         label21 = Label("Hello, World")

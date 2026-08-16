@@ -159,8 +159,10 @@ class Theme:
     danger_surface: ThemeColor
     danger_border: ThemeColor
 
+    base: ThemeColor = ThemeColor("#ffffffff")
 
-DARK = Theme(name="dark", display_name="Dark mode", is_highcontrast=False,
+
+DARK = Theme(name="dark", display_name="Dark theme", is_highcontrast=False,
     background=ThemeColor("#101420ff"),
     sidebar=ThemeColor("#1b2238ff"),
     surface=ThemeColor("#80809030"),
@@ -173,7 +175,7 @@ DARK = Theme(name="dark", display_name="Dark mode", is_highcontrast=False,
     danger_surface=ThemeColor("#ee283050"),
     danger_border=ThemeColor("#ac191eff")
 )
-LIGHT = Theme(name="light", display_name="Light mode", is_highcontrast=False,
+LIGHT = Theme(name="light", display_name="Light theme", is_highcontrast=False,
     background = ThemeColor("#ebe9e7ff"),
     sidebar=ThemeColor("#dddbd8ff"),
     surface=ThemeColor("#ffffff80", "#80808040"),
@@ -186,7 +188,7 @@ LIGHT = Theme(name="light", display_name="Light mode", is_highcontrast=False,
     danger_surface=ThemeColor("#ee283050"),
     danger_border=ThemeColor("#ac191eff")
 )
-NIGHT = Theme(name="night", display_name="Night mode", is_highcontrast=False,
+NIGHT = Theme(name="night", display_name="Night theme", is_highcontrast=False,
     background = ThemeColor("#000000ff"),
     sidebar=ThemeColor("#000000ff"),
     surface=ThemeColor("#60607840"),
@@ -199,7 +201,7 @@ NIGHT = Theme(name="night", display_name="Night mode", is_highcontrast=False,
     danger_surface=ThemeColor("#ee283050"),
     danger_border=ThemeColor("#ac191eff")
 )
-HIGH_CONTRAST = Theme(name="highcontrast", display_name="High contrast", is_highcontrast=True,
+HIGH_CONTRAST = Theme(name="highcontrast", display_name="High contrast theme", is_highcontrast=True,
     background=ThemeColor("#000000ff"),
     sidebar=ThemeColor("#000000ff"),
     surface=ThemeColor("#ffffff20"),
@@ -326,6 +328,12 @@ class ThemeManager(QObject):
     def current(self) -> Theme:
         """Returns current theme object."""
         return self._current
+
+    def current_idx(self) -> int:
+        try:
+            return self.themes.index(self._current)
+        except ValueError:
+            return 0
 
     def set_theme(self, theme: Theme) -> None:
         """Sets current theme and update all widgets."""

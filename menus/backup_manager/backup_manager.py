@@ -9,7 +9,7 @@ from pathlib import Path
 
 from menus import base
 
-from ui.widgets import Label, HeaderLabel, Button, Surface, SurfaceStyle, Slider, LineEdit, ToolButton
+from ui.widgets import Label, StyledLabel, LabelStyle, Button, Surface, SurfaceStyle, Slider, LineEdit, ToolButton
 from ui.models import TooltipContents
 
 from utils import repr_file_size, dir_size, get_vehicles_path, clear_layout
@@ -75,7 +75,7 @@ class SettingsAndBackupsMenu(base.BaseMenu):
         # ---------------
         
         
-        self.backups_part_header = HeaderLabel("Backup settings", 4)
+        self.backups_part_header = StyledLabel("Backup settings", LabelStyle.HEADER_4)
         self.master_layout.addWidget(self.backups_part_header)
         
         # Contron settings
